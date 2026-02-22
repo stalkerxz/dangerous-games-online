@@ -37,6 +37,52 @@ npm run lint
 npm run build
 ```
 
+
+## Android wrapper (Capacitor)
+
+The repository includes `apps/mobile`, a Capacitor wrapper for the existing PWA build output in `apps/web/dist`.
+
+### Android commands
+
+```bash
+npm run android:sync
+npm run android:open
+npm run android:dev
+npm run android:build
+```
+
+What they do:
+- `android:sync`: builds the web app and runs Capacitor Android sync.
+- `android:open`: opens the generated Android project in Android Studio.
+- `android:dev`: syncs and opens Android Studio in one flow.
+- `android:build`: syncs and prints Android Studio steps for APK/AAB generation.
+- Inside Capacitor WebView, routing uses hash URLs so refresh/deep-link navigation works without server-side rewrite rules.
+
+### Building APK/AAB
+
+1. Run `npm run android:dev` (or `npm run android:sync` then `npm run android:open`).
+2. In Android Studio:
+   - Build debug APK: **Build → Build Bundle(s) / APK(s) → Build APK(s)**.
+   - Build release AAB/APK: **Build → Generate Signed Bundle / APK**.
+
+### API URL for Android device testing
+
+When the app runs on a real Android device, `localhost` points to the device itself, not your development machine.
+
+Use a LAN URL for the API in `.env`:
+
+```bash
+VITE_API_BASE_URL=http://192.168.x.x:8000
+```
+
+For desktop development you can keep:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+A starter template is provided in `.env.example`.
+
 ## API endpoints
 
 - `GET /health`
