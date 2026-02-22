@@ -49,7 +49,7 @@ npm run build
 The API serves a manifest at `/content/manifest.json` with pack metadata (`id`, `type`, `version`, `url`, `sha256`). Published pack files live in `apps/api/content/published`.
 
 Current sample packs:
-- `campaign_v1_1.0.1.json` – RU campaign chapter "Чаты" with age mode variants (`8-10`, `11-14`) and achievement-related tags.
+- `campaign_v1_1.0.2.json` – RU campaign chapter "Чаты" with age mode variants (`8-10`, `11-14`), standardized scene `tags`, and choice effect `clues` for achievements.
 - `weekly_2026_w09_1.0.1.json` – weekly mission pack with active date range, start scene, and rewards.
 - `achievements_1.0.0.json` – achievements payload with trigger-based rules.
 
@@ -78,6 +78,10 @@ Web content sync flow:
   - `title` (optional)
   - `chat` (optional replacement chat array)
   - `choices` (optional replacement choices array)
+- `tags` on scenes: taxonomy for achievement/event classification (`urgency`, `antifake`, `evidence`, `bullying_witness`, `privacy`, `account`)
+- `choices[].effects.clues`: optional taxonomy hints for safe/unsafe outcomes using the same tag set
+- `choices[].effects.actions`: optional action markers (example: `evidence_saved`)
+- `choices[].effects.skills`: optional skill deltas emitted as `skill_changed` runtime events
 
 Example:
 
@@ -86,7 +90,8 @@ Example:
   "id": "scene-id",
   "title": "Base title",
   "chat": [{ "speaker": "NPC", "text": "Base" }],
-  "choices": [{ "id": "a", "label": "...", "debrief": "...", "quiz": { "question": "...", "options": ["..."], "answerIndex": 0 } }],
+  "tags": ["urgency", "antifake"],
+  "choices": [{ "id": "a", "label": "...", "debrief": "...", "quiz": { "question": "...", "options": ["..."], "answerIndex": 0 }, "effects": { "clues": ["urgency"] } }],
   "modes": ["8-10", "11-14"],
   "modeContent": {
     "8-10": {
