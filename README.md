@@ -49,8 +49,8 @@ npm run build
 The API serves a manifest at `/content/manifest.json` with pack metadata (`id`, `type`, `version`, `url`, `sha256`). Published pack files live in `apps/api/content/published`.
 
 Current sample packs:
-- `campaign_v1_1.0.0.json` – includes scenes with chat templates, choices, debrief notes, and quiz prompts.
-- `weekly_2026_w09_1.0.0.json` – weekly mission pack with active date range, start scene, and rewards.
+- `campaign_v1_1.0.1.json` – RU campaign chapter "Чаты" with age mode variants (`8-10`, `11-14`) and achievement-related tags.
+- `weekly_2026_w09_1.0.1.json` – weekly mission pack with active date range, start scene, and rewards.
 - `achievements_1.0.0.json` – achievements payload with trigger-based rules.
 
 Web content sync flow:
@@ -61,6 +61,40 @@ Web content sync flow:
 5. Campaign and Weekly pages render cached scenes and remain available offline after first successful sync.
 6. Weekly completion is persisted locally (completed mission IDs, earned badges, and skill increments), and rewards are granted only once per weekly pack.
 7. Achievement progress and unlock state are evaluated in the web app from local events and stored in localStorage, so progress works offline after the pack is cached.
+
+
+### Age mode in web app
+
+- Open **Settings** in the web app to choose age mode: `8-10` or `11-14`.
+- Selected mode is stored locally in browser storage and applied automatically in `ScenePlayer`.
+- If a scene has no mode override, base scene text is used as fallback.
+
+### Campaign scene mode schema
+
+`StoryScene` supports mode-specific content in packs:
+
+- `modes`: array of supported modes (e.g. `["8-10", "11-14"]`)
+- `modeContent`: keyed overrides per mode
+  - `title` (optional)
+  - `chat` (optional replacement chat array)
+  - `choices` (optional replacement choices array)
+
+Example:
+
+```json
+{
+  "id": "scene-id",
+  "title": "Base title",
+  "chat": [{ "speaker": "NPC", "text": "Base" }],
+  "choices": [{ "id": "a", "label": "...", "debrief": "...", "quiz": { "question": "...", "options": ["..."], "answerIndex": 0 } }],
+  "modes": ["8-10", "11-14"],
+  "modeContent": {
+    "8-10": {
+      "chat": [{ "speaker": "NPC", "text": "Simpler text" }]
+    }
+  }
+}
+```
 
 ### Achievements data format
 

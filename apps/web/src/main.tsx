@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
+import { AgeModeProvider } from './ageMode';
 import { ContentProvider } from './contentContext';
 import './styles.css';
 
@@ -12,7 +13,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <ContentProvider>
-        <App />
+        <AgeModeProvider>
+          <App />
+        </AgeModeProvider>
       </ContentProvider>
     </BrowserRouter>
   </React.StrictMode>

@@ -3,6 +3,7 @@ import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import { completeWeeklyMission, readPlayerProgress } from '../playerProgress';
 import { processAchievementEvent, type GameEvent } from '../achievements';
+import { useAgeMode } from '../ageMode';
 
 function isBetweenInclusive(today: string, start: string, end: string) {
   return today >= start && today <= end;
@@ -10,6 +11,7 @@ function isBetweenInclusive(today: string, start: string, end: string) {
 
 export function WeeklyPage() {
   const { weeklyPacks, achievements, loading } = useContent();
+  const { ageMode } = useAgeMode();
   const [progress, setProgress] = useState(() => readPlayerProgress());
   const today = new Date().toISOString().slice(0, 10);
 
@@ -60,6 +62,7 @@ export function WeeklyPage() {
             title={activeWeekly.title}
             scenes={activeWeekly.scenes}
             startSceneId={activeWeekly.start_scene}
+            ageMode={ageMode}
             onComplete={onComplete}
             onEvent={onEvent}
             eventContext={{ weeklyId: activeWeekly.id }}

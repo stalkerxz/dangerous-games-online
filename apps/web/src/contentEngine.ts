@@ -11,6 +11,15 @@ export type ContentManifest = {
   packs: PackManifestEntry[];
 };
 
+
+export type AgeMode = '8-10' | '11-14';
+
+export type ModeSceneContent = {
+  title?: string;
+  chat?: Array<{ speaker: string; text: string }>;
+  choices?: SceneChoice[];
+};
+
 export type ChoiceQuiz = {
   question: string;
   options: string[];
@@ -33,6 +42,8 @@ export type StoryScene = {
   chat: Array<{ speaker: string; text: string }>;
   choices: SceneChoice[];
   tags?: string[];
+  modes?: AgeMode[];
+  modeContent?: Partial<Record<AgeMode, ModeSceneContent>>;
 };
 
 export type CampaignPack = {
