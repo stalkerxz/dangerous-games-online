@@ -1,0 +1,140 @@
+{
+  "id": "campaign_v1",
+  "type": "campaign",
+  "version": "1.0.0",
+  "title": "Campaign V1",
+  "scenes": [
+    {
+      "id": "alley-intro",
+      "title": "The Alley Offer",
+      "chat": [
+        {
+          "speaker": "Milo",
+          "text": "Hey, I found a cracked app that gives free gems. Want the link?"
+        },
+        {
+          "speaker": "You",
+          "text": "It sounds sketchy. What if it steals my account?"
+        }
+      ],
+      "choices": [
+        {
+          "id": "safe",
+          "label": "Decline and report the link",
+          "debrief": "Great call. Suspicious links are a common path for account theft.",
+          "quiz": {
+            "question": "What is the safest next step after receiving a suspicious link?",
+            "options": [
+              "Open in incognito mode",
+              "Share with a friend first",
+              "Report it and avoid opening it"
+            ],
+            "answerIndex": 2
+          }
+        },
+        {
+          "id": "unsafe",
+          "label": "Try the link to see if it works",
+          "debrief": "Risky choice. Malware and phishing pages often pretend to be rewards.",
+          "quiz": {
+            "question": "What is a common goal of phishing links?",
+            "options": [
+              "Giving free upgrades",
+              "Stealing login details",
+              "Improving game performance"
+            ],
+            "answerIndex": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "guild-chat",
+      "title": "Guild Chat Pressure",
+      "chat": [
+        {
+          "speaker": "Rae",
+          "text": "Post your recovery email here so we can verify your guild rank."
+        },
+        {
+          "speaker": "You",
+          "text": "That feels private. Is there another way?"
+        }
+      ],
+      "choices": [
+        {
+          "id": "private",
+          "label": "Keep personal info private and ask a moderator",
+          "debrief": "Exactly. Personal account details should never be shared in public chat.",
+          "quiz": {
+            "question": "Which information should stay private?",
+            "options": [
+              "Favorite game",
+              "Account recovery email",
+              "Preferred character class"
+            ],
+            "answerIndex": 1
+          }
+        },
+        {
+          "id": "overshare",
+          "label": "Share details quickly to keep rank",
+          "debrief": "Not safe. Pressure tactics are used to trick players into oversharing.",
+          "quiz": {
+            "question": "What is a warning sign of social engineering?",
+            "options": [
+              "Urgent pressure to act",
+              "Clear official policy",
+              "Public safety notice"
+            ],
+            "answerIndex": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stream-link",
+      "title": "Streamer Giveaway",
+      "chat": [
+        {
+          "speaker": "StreamerBot",
+          "text": "Congrats! Claim your reward by entering your password at this mirror site."
+        },
+        {
+          "speaker": "You",
+          "text": "Real giveaways shouldn't need my password..."
+        }
+      ],
+      "choices": [
+        {
+          "id": "verify",
+          "label": "Verify on the official site before acting",
+          "debrief": "Smart. Always confirm giveaways through trusted official channels.",
+          "quiz": {
+            "question": "Why should you avoid mirror login pages?",
+            "options": [
+              "They can capture your credentials",
+              "They load too slowly",
+              "They require extra clicks"
+            ],
+            "answerIndex": 0
+          }
+        },
+        {
+          "id": "submit",
+          "label": "Enter password to claim quickly",
+          "debrief": "Unsafe. Never provide your password outside the official login flow.",
+          "quiz": {
+            "question": "Where should you enter your game password?",
+            "options": [
+              "Any giveaway page",
+              "Only on official trusted login",
+              "In group chat if asked"
+            ],
+            "answerIndex": 1
+          }
+        }
+      ]
+    }
+  ]
+}
