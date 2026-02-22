@@ -35,6 +35,7 @@ export type SceneChoice = {
   tags?: string[];
   actions?: string[];
   effects?: {
+    risk?: number;
     clues?: string[];
     actions?: string[];
     skills?: Record<string, number>;
