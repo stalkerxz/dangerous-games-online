@@ -51,11 +51,19 @@ export type StoryScene = {
   modeContent?: Partial<Record<AgeMode, ModeSceneContent>>;
 };
 
+export type CampaignChapter = {
+  id: string;
+  title: string;
+  scene_ids: string[];
+  final_scene: string;
+};
+
 export type CampaignPack = {
   id: string;
   type: 'campaign';
   version: string;
   title: string;
+  chapters: CampaignChapter[];
   scenes: StoryScene[];
 };
 
