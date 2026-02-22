@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { StoryScene } from '../contentEngine';
+import type { AgeMode, StoryScene } from '../contentEngine';
 import type { GameEvent } from '../achievements';
 
 type ScenePlayerProps = {
   title: string;
   scenes: StoryScene[];
   startSceneId?: string;
+  ageMode?: AgeMode;
   footer?: ReactNode;
   onComplete?: () => void;
   onEvent?: (event: GameEvent) => void;
@@ -15,7 +16,16 @@ type ScenePlayerProps = {
   };
 };
 
-export function ScenePlayer({ title, scenes, startSceneId, footer, onComplete, onEvent, eventContext }: ScenePlayerProps) {
+export function ScenePlayer({
+  title,
+  scenes,
+  startSceneId,
+  ageMode = '11-14',
+  footer,
+  onComplete,
+  onEvent,
+  eventContext
+}: ScenePlayerProps) {
   const initialIndex = useMemo(() => {
     if (!startSceneId) {
       return 0;
@@ -35,9 +45,17 @@ export function ScenePlayer({ title, scenes, startSceneId, footer, onComplete, o
     setSelectedChoiceId(null);
     setSelectedQuizOption(null);
     setIsCompleted(false);
-  }, [initialIndex, scenes]);
+  }, [initialIndex, scenes, ageMode]);
 
-  const scene = scenes[sceneIndex];
+  const baseScene = scenes[sceneIndex];
+  const modeScene = baseScene.modeContent?.[ageMode];
+  const scene = {
+    ...baseScene,
+    title: modeScene?.title ?? baseScene.title,
+    chat: modeScene?.chat ?? baseScene.chat,
+    choices: modeScene?.choices ?? baseScene.choices
+  };
+
   const selectedChoice = scene.choices.find((choice) => choice.id === selectedChoiceId) ?? null;
 
   const onChoose = (choiceId: string) => {

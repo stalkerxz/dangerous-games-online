@@ -1,9 +1,11 @@
 import { useContent } from '../contentContext';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
+import { useAgeMode } from '../ageMode';
 
 export function CampaignPage() {
   const { campaign, achievements, loading, error, source } = useContent();
+  const { ageMode } = useAgeMode();
 
   const onEvent = (event: GameEvent) => {
     processAchievementEvent(achievements, event);
@@ -21,7 +23,7 @@ export function CampaignPage() {
     <section>
       <h2>{campaign.title}</h2>
       <p>Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
-      <ScenePlayer title={campaign.title} scenes={campaign.scenes} onEvent={onEvent} />
+      <ScenePlayer title={campaign.title} scenes={campaign.scenes} ageMode={ageMode} onEvent={onEvent} />
     </section>
   );
 }
