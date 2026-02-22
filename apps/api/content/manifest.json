@@ -1,8 +1,1 @@
-{
-  "version": "1.0.0",
-  "packs": [
-    {"id":"campaign_v1","type":"campaign","version":"1.0.0","url":"/content/published/campaign_v1_1.0.0.json","sha256":"d2071b1097fa4558fc0f8bbe5da3aa8022b6e267d7b09cd83fc09e42a2417553"},
-    {"id":"achievements","type":"achievements","version":"1.0.0","url":"/content/published/achievements_1.0.0.json","sha256":"bf95c767377c0ef8afe3cbda057e0e391139660971413bb188ef29325ec7c5c6"},
-    {"id":"weekly_2026_w09","type":"weekly","version":"1.0.0","url":"/content/published/weekly_2026_w09_1.0.0.json","sha256":"296deb7c241fc08297a75c6a1527be9fec9a017983ecc0f426f33bc795fd7e00"}
-  ]
-}
+{"version":"1.0.0","packs":[{"id":"campaign_v1","type":"campaign","version":"1.0.0","url":"/content/published/campaign_v1_1.0.0.json","sha256":"dbfd9c94119a344e23b98cd42af91f62c8967b19928c6febab32329cbebd60e5"},{"id":"achievements","type":"achievements","version":"1.0.0","url":"/content/published/achievements_1.0.0.json","sha256":"aeb82fa43d1c7e970d0e8ed7b926d79a7628b22c5432e6c11bb3e62fe7fb7f3c"},{"id":"weekly_2026_w09","type":"weekly","version":"1.0.1","url":"/content/published/weekly_2026_w09_1.0.1.json","sha256":"429fb3be118d444dc32276ed6781b56b16239de4d637fc93d8a6f9b4ab1f4f54"}]}

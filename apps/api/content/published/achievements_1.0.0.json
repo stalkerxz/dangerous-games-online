@@ -4,9 +4,86 @@
   "version": "1.0.0",
   "items": [
     {
-      "id": "security-first-step",
-      "name": "Security First Step",
-      "description": "Complete your first safe choice in campaign mode."
+      "id": "no-urgency-bait",
+      "name": "Не повёлся на срочность",
+      "description": "Сделай 10 безопасных выборов в сценах с признаком срочности.",
+      "icon": "⏱️",
+      "trigger": {
+        "kind": "count_event",
+        "event": "choice_made",
+        "target": 10,
+        "filters": {
+          "safe": true,
+          "tag": "urgency"
+        }
+      }
+    },
+    {
+      "id": "checked-source",
+      "name": "Проверил источник",
+      "description": "Ответь правильно на 5 антифейк-викторин.",
+      "icon": "🔎",
+      "trigger": {
+        "kind": "count_event",
+        "event": "quiz_answered",
+        "target": 5,
+        "filters": {
+          "correct": true,
+          "tag": "antifake"
+        }
+      }
+    },
+    {
+      "id": "saved-evidence",
+      "name": "Сохранил доказательства",
+      "description": "Заверши 3 сцены про буллинг с действием сохранения доказательств.",
+      "icon": "📁",
+      "trigger": {
+        "kind": "count_event",
+        "event": "scene_completed",
+        "target": 3,
+        "filters": {
+          "tag": "evidence",
+          "action": "evidence_saved"
+        }
+      }
+    },
+    {
+      "id": "witness-support",
+      "name": "Свидетель поддержал",
+      "description": "Безопасно пройди сцену буллинга с ролью свидетеля.",
+      "icon": "🤝",
+      "trigger": {
+        "kind": "count_event",
+        "event": "scene_completed",
+        "target": 1,
+        "filters": {
+          "tag": "bullying_witness",
+          "safe": true
+        }
+      }
+    },
+    {
+      "id": "privacy-shield",
+      "name": "Щит приватности",
+      "description": "Достигни 3 уровня навыка приватности.",
+      "icon": "🛡️",
+      "trigger": {
+        "kind": "skill_level",
+        "skill": "privacy",
+        "level": 3
+      }
+    },
+    {
+      "id": "weekly-mission-complete",
+      "name": "Миссия недели пройдена",
+      "description": "Заверши любую еженедельную миссию хотя бы один раз.",
+      "icon": "📅",
+      "trigger": {
+        "kind": "count_event",
+        "event": "weekly_completed",
+        "target": 1
+      }
     }
   ]
 }

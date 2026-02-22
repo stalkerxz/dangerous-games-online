@@ -22,6 +22,9 @@ export type SceneChoice = {
   label: string;
   debrief: string;
   quiz: ChoiceQuiz;
+  safe?: boolean;
+  tags?: string[];
+  actions?: string[];
 };
 
 export type StoryScene = {
@@ -29,6 +32,7 @@ export type StoryScene = {
   title: string;
   chat: Array<{ speaker: string; text: string }>;
   choices: SceneChoice[];
+  tags?: string[];
 };
 
 export type CampaignPack = {
@@ -54,6 +58,34 @@ export type WeeklyPack = {
   start_scene: string;
   rewards: WeeklyReward;
   scenes: StoryScene[];
+};
+
+export type AchievementTrigger =
+  | {
+      kind: 'count_event';
+      event: 'choice_made' | 'quiz_answered' | 'scene_completed' | 'weekly_completed' | 'skill_changed';
+      target: number;
+      filters?: Record<string, string | number | boolean>;
+    }
+  | {
+      kind: 'skill_level';
+      skill: string;
+      level: number;
+    };
+
+export type AchievementItem = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  trigger: AchievementTrigger;
+};
+
+export type AchievementPack = {
+  id: string;
+  type: 'achievements';
+  version: string;
+  items: AchievementItem[];
 };
 
 type CachedPackRecord = {
@@ -145,6 +177,7 @@ export async function syncContentPacks(): Promise<{
   manifest: ContentManifest | null;
   campaign: CampaignPack | null;
   weeklyPacks: WeeklyPack[];
+  achievements: AchievementPack | null;
   source: 'network' | 'cache';
 }> {
   const manifestUrl = `${API_BASE_URL}/content/manifest.json`;
@@ -159,12 +192,13 @@ export async function syncContentPacks(): Promise<{
   if (!manifest) {
     const fallback = await readPack('manifest@latest');
     if (!fallback) {
-      return { manifest: null, campaign: null, weeklyPacks: [], source: 'cache' };
+      return { manifest: null, campaign: null, weeklyPacks: [], achievements: null, source: 'cache' };
     }
     const cachedManifest = fallback.data as ContentManifest;
     const campaign = await loadCampaignFromCache(cachedManifest);
     const weeklyPacks = await loadWeeklyPacksFromCache(cachedManifest);
-    return { manifest: cachedManifest, campaign, weeklyPacks, source: 'cache' };
+    const achievements = await loadAchievementsFromCache(cachedManifest);
+    return { manifest: cachedManifest, campaign, weeklyPacks, achievements, source: 'cache' };
   }
 
   await savePack({ key: 'manifest@latest', hash: manifest.version, data: manifest });
@@ -192,7 +226,8 @@ export async function syncContentPacks(): Promise<{
 
   const campaign = await loadCampaignFromCache(manifest);
   const weeklyPacks = await loadWeeklyPacksFromCache(manifest);
-  return { manifest, campaign, weeklyPacks, source: 'network' };
+  const achievements = await loadAchievementsFromCache(manifest);
+  return { manifest, campaign, weeklyPacks, achievements, source: 'network' };
 }
 
 async function loadCampaignFromCache(manifest: ContentManifest): Promise<CampaignPack | null> {
@@ -222,4 +257,18 @@ async function loadWeeklyPacksFromCache(manifest: ContentManifest): Promise<Week
   );
 
   return results.filter((pack): pack is WeeklyPack => pack !== null);
+}
+
+async function loadAchievementsFromCache(manifest: ContentManifest): Promise<AchievementPack | null> {
+  const achievementsPack = manifest.packs.find((pack) => pack.type === 'achievements');
+  if (!achievementsPack) {
+    return null;
+  }
+
+  const cached = await readPack(toStorageKey(achievementsPack));
+  if (!cached || cached.hash !== achievementsPack.sha256) {
+    return null;
+  }
+
+  return cached.data as AchievementPack;
 }

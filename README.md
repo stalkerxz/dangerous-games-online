@@ -51,7 +51,7 @@ The API serves a manifest at `/content/manifest.json` with pack metadata (`id`, 
 Current sample packs:
 - `campaign_v1_1.0.0.json` – includes scenes with chat templates, choices, debrief notes, and quiz prompts.
 - `weekly_2026_w09_1.0.0.json` – weekly mission pack with active date range, start scene, and rewards.
-- `achievements_1.0.0.json` – minimal achievements payload.
+- `achievements_1.0.0.json` – achievements payload with trigger-based rules.
 
 Web content sync flow:
 1. On app startup the web client fetches the manifest from `VITE_API_BASE_URL` (defaults to `http://localhost:8000`).
@@ -60,6 +60,29 @@ Web content sync flow:
 4. Packs are stored in IndexedDB, with localStorage fallback.
 5. Campaign and Weekly pages render cached scenes and remain available offline after first successful sync.
 6. Weekly completion is persisted locally (completed mission IDs, earned badges, and skill increments), and rewards are granted only once per weekly pack.
+7. Achievement progress and unlock state are evaluated in the web app from local events and stored in localStorage, so progress works offline after the pack is cached.
+
+### Achievements data format
+
+`achievements_1.0.0.json` items use:
+
+- `id`: stable string identifier
+- `name`: display name (RU)
+- `description`: player-facing description (RU)
+- `icon`: string icon (emoji/text)
+- `trigger`: evaluation rule
+  - `kind: "count_event"` with `event`, `target`, optional `filters`
+  - `kind: "skill_level"` with `skill`, `level`
+
+### Runtime events used by achievements
+
+The web client emits and evaluates these events locally:
+
+- `choice_made`
+- `quiz_answered` (`correct` flag included)
+- `scene_completed`
+- `weekly_completed`
+- `skill_changed`
 
 PWA offline support is enabled via `vite-plugin-pwa` in the web app.
 
