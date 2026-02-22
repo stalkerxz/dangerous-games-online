@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "starter-pack",
+      "name": "Starter Pack",
+      "path": "/content/published/starter-pack.json"
+    }
+  ]
+}

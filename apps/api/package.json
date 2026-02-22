@@ -1,0 +1,10 @@
+{
+  "name": "@dangerous-games/api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bash ../../scripts/api-dev.sh",
+    "lint": "bash ../../scripts/api-lint.sh",
+    "build": "bash ../../scripts/api-build.sh"
+  }
+}
