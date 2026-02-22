@@ -34,6 +34,16 @@ function writeState(state: AchievementProgressState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+export function seedDemoAchievements(unlockedIds: string[]) {
+  const now = new Date().toISOString();
+  const unlockedAt = Object.fromEntries(unlockedIds.map((id) => [id, now]));
+  writeState({ counters: {}, unlockedAt });
+}
+
+export function clearAchievementProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 function matchesFilters(
   payload: Record<string, string | number | boolean>,
   filters: Record<string, string | number | boolean>

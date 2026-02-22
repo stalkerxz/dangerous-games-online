@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
-import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress } from '../playerProgress';
+import { completeLessonKit, clearParentsDemoData, readCampaignKpiProgress, readPlayerProgress, seedParentsDemoData } from '../playerProgress';
 import { useAgeMode } from '../ageMode';
+import { clearAchievementProgress, getAchievementViews, seedDemoAchievements } from '../achievements';
 
 type SkillCard = {
   id: 'privacy' | 'account' | 'antifake' | 'communication' | 'antibullying';
@@ -90,7 +91,7 @@ const lessonKits: LessonKit[] = [
 ];
 
 export function ParentsPage() {
-  const { campaign, loading } = useContent();
+  const { campaign, achievements, loading } = useContent();
   const { ageMode } = useAgeMode();
   const [progress, setProgress] = useState(() => readPlayerProgress());
   const [activeKitId, setActiveKitId] = useState<string | null>(null);
@@ -110,44 +111,84 @@ export function ParentsPage() {
       .filter((scene): scene is StoryScene => scene !== undefined);
   }, [activeKit, campaign]);
 
+  const campaignKpi = readCampaignKpiProgress()[ageMode];
+  const achievementViews = getAchievementViews(achievements);
+  const unlockedAchievementsCount = achievementViews.filter((item) => item.unlocked).length;
 
-  const campaignKpi = useMemo(() => readCampaignKpiProgress()[ageMode], [ageMode]);
+  const safeChoices = campaignKpi?.overall.safe_choices_count ?? 0;
+  const riskyChoices = campaignKpi?.overall.risky_choices_count ?? 0;
+  const totalChoices = safeChoices + riskyChoices;
+  const safePercent = totalChoices > 0 ? Math.round((safeChoices / totalChoices) * 100) : null;
 
   const skillRanking = useMemo(() => {
-    const entries = Object.entries(campaignKpi?.overall.risky_tags ?? {});
-    if (entries.length === 0) {
-      return { strongest: 'n/a', weakest: 'n/a' };
+    const tagTotals = campaignKpi?.overall.tag_totals ?? {};
+    const tagSafeCounts = campaignKpi?.overall.tag_safe_counts ?? {};
+    const entries = Object.entries(tagTotals)
+      .filter(([, total]) => total > 0)
+      .map(([tag, total]) => ({ tag, total, safeRatio: (tagSafeCounts[tag] ?? 0) / total }));
+
+    const totalTaggedEvents = entries.reduce((acc, item) => acc + item.total, 0);
+
+    if (totalTaggedEvents < 5 || entries.length <= 1) {
+      return {
+        strongest: 'n/a (not enough data)',
+        weakest: 'n/a (not enough data)'
+      };
     }
 
-    const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+    const strongest = [...entries].sort((a, b) => b.safeRatio - a.safeRatio)[0].tag;
+    const weakest = [...entries].sort((a, b) => a.safeRatio - b.safeRatio)[0].tag;
+
     return {
-      weakest: sorted[0][0],
-      strongest: sorted[sorted.length - 1][0]
+      strongest,
+      weakest: strongest === weakest ? 'n/a (not enough data)' : weakest
     };
   }, [campaignKpi]);
 
-  const reportText = useMemo(() => {
+  const shortReportText = useMemo(() => {
     const lines = [
-      'Отчёт по навыкам цифровой безопасности (без персональных данных):',
-      `Сцены завершено: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
-      `Выборы (safe/risky): ${campaignKpi?.overall.safe_choices_count ?? 0}/${campaignKpi?.overall.risky_choices_count ?? 0}`,
-      `Квизы: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
-      `Финал главы завершён: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'да' : 'нет'}`,
-      `Сильный навык: ${skillRanking.strongest}`,
-      `Слабый навык: ${skillRanking.weakest}`,
-      ...skillCards.map((skill) => {
-        const value = progress.skills[skill.id] ?? 0;
-        return `- ${skill.label}: ${value}`;
-      }),
-      `Завершённые мини-уроки: ${progress.completedLessonKitIds.length}/${lessonKits.length}`
+      'Parents KPI short report (no personal data)',
+      `Age mode: ${ageMode}`,
+      `Scenes completed: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
+      `Safe choices: ${safeChoices} | Risky choices: ${riskyChoices}${safePercent === null ? '' : ` | Safe rate: ${safePercent}%`}`,
+      `Quiz correctness: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
+      `Final completed: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}`,
+      `Strongest/weakest: ${skillRanking.strongest} / ${skillRanking.weakest}`
     ];
 
     return lines.join('\n');
-  }, [campaignKpi, progress, skillRanking]);
+  }, [ageMode, campaignKpi, riskyChoices, safeChoices, safePercent, skillRanking]);
 
-  const onCopyReport = async () => {
+  const competitionReportText = useMemo(() => {
+    const lines = [
+      'Competition KPI report (offline, no personal data)',
+      `Age mode: ${ageMode}`,
+      `Scenes completed: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
+      `Safe choices: ${safeChoices}`,
+      `Risky choices: ${riskyChoices}`,
+      `Quiz correctness: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
+      `Final chapter completed: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}`,
+      `Achievements unlocked: ${unlockedAchievementsCount}`,
+      `Lesson kits completed: ${progress.completedLessonKitIds.length}/${lessonKits.length}`,
+      `Strongest skill: ${skillRanking.strongest}`,
+      `Weakest skill: ${skillRanking.weakest}`
+    ];
+
+    return lines.join('\n');
+  }, [
+    ageMode,
+    campaignKpi,
+    progress.completedLessonKitIds.length,
+    riskyChoices,
+    safeChoices,
+    skillRanking.strongest,
+    skillRanking.weakest,
+    unlockedAchievementsCount
+  ]);
+
+  const copyText = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(reportText);
+      await navigator.clipboard.writeText(text);
       setCopyState('done');
     } catch {
       setCopyState('error');
@@ -162,6 +203,19 @@ export function ParentsPage() {
     setProgress(completeLessonKit(activeKitId));
     setFinishedKitId(activeKitId);
     setLessonJustCompleted(true);
+  };
+
+  const onLoadDemoData = () => {
+    const result = seedParentsDemoData(ageMode);
+    const unlockIds = (achievements?.items ?? []).slice(0, 2).map((item) => item.id);
+    seedDemoAchievements(unlockIds);
+    setProgress(result.playerProgress);
+  };
+
+  const onClearDemoData = () => {
+    clearParentsDemoData();
+    clearAchievementProgress();
+    setProgress(readPlayerProgress());
   };
 
   if (loading) {
@@ -207,13 +261,22 @@ export function ParentsPage() {
 
       <h3>Overall KPI summary</h3>
       <p>Scenes completed: {campaignKpi?.overall.scenes_completed_count ?? 0}</p>
-      <p>Safe vs risky choices: {campaignKpi?.overall.safe_choices_count ?? 0}/{campaignKpi?.overall.risky_choices_count ?? 0}</p>
+      <p>Safe choices: {safeChoices}</p>
+      <p>Risky choices: {riskyChoices}</p>
+      {safePercent !== null && <p>Percent safe: {safePercent}%</p>}
       <p>Quiz correctness: {campaignKpi?.overall.quiz_correct_count ?? 0}/{campaignKpi?.overall.quiz_total_count ?? 0}</p>
       <p>Final completed: {(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}</p>
       <p>Strongest skill: {skillRanking.strongest}</p>
       <p>Weakest skill: {skillRanking.weakest}</p>
 
-      <button type="button" onClick={onCopyReport}>Copy report</button>
+      <button type="button" onClick={() => copyText(shortReportText)}>Copy short report</button>
+      <button type="button" onClick={() => copyText(competitionReportText)}>Copy competition report</button>
+      {import.meta.env.DEV && (
+        <>
+          <button type="button" onClick={onLoadDemoData}>Load demo data</button>
+          <button type="button" onClick={onClearDemoData}>Clear demo data</button>
+        </>
+      )}
       {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
       {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
 

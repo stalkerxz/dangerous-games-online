@@ -134,6 +134,7 @@ The web app now tracks campaign KPIs locally per age mode, both **per chapter** 
 - `safe_choices_count` / `risky_choices_count`
 - `quiz_correct_count` / `quiz_total_count`
 - `chapter_final_completed`
+- `tag_totals` / `tag_safe_counts` for per-tag safe-ratio ranking in parents KPI summary
 
 Risk classification for choices:
 
@@ -151,13 +152,14 @@ UX additions:
 
 - Completing a chapter final shows a **Chapter Summary** with chapter KPI stats and 3 recommendations from most frequent risky tags.
 - The chapter summary includes **Repeat weak skill**, launching a short 3-scene remediation flow from that chapter.
-- `/parents` now includes an **Overall KPI summary** plus clipboard export for reporting.
+- `/parents` now includes an **Overall KPI summary** with explicit safe/risky counts, safe-rate %, and separate short/competition clipboard exports.
 
 ## Parents / Teachers dashboard
 
 - New `/parents` page in web app shows a local skill summary for five areas: privacy, account safety, anti-fake, communication, and anti-bullying.
 - Each skill card includes short interpretation text and practical recommendations in Russian.
-- A **Copy report** button exports a clipboard-safe text summary without personal data.
+- Two export buttons are available: **Copy short report** (5-8 lines) and **Copy competition report** (structured KPI text including age mode and achievements unlocked).
+- In DEV mode, `/parents` includes **Load demo data** and **Clear demo data** buttons to seed/reset local KPI, skills, lesson-kit completion, and 2 unlocked achievements for demos.
 - Added **20-minute lesson kits** with 3 presets and 4 scenes each:
   - `Приватность`
   - `Антифейк`
