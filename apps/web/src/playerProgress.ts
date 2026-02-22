@@ -22,6 +22,8 @@ export type ChapterKpiMetrics = {
   quiz_total_count: number;
   chapter_final_completed: boolean;
   risky_tags: Record<string, number>;
+  tag_totals: Record<string, number>;
+  tag_safe_counts: Record<string, number>;
   risky_scene_ids: string[];
 };
 
@@ -122,7 +124,24 @@ function emptyChapterKpiMetrics(): ChapterKpiMetrics {
     quiz_total_count: 0,
     chapter_final_completed: false,
     risky_tags: {},
+    tag_totals: {},
+    tag_safe_counts: {},
     risky_scene_ids: []
+  };
+}
+
+function normalizeChapterKpiMetrics(metrics: Partial<ChapterKpiMetrics> | undefined): ChapterKpiMetrics {
+  return {
+    scenes_completed_count: metrics?.scenes_completed_count ?? 0,
+    safe_choices_count: metrics?.safe_choices_count ?? 0,
+    risky_choices_count: metrics?.risky_choices_count ?? 0,
+    quiz_correct_count: metrics?.quiz_correct_count ?? 0,
+    quiz_total_count: metrics?.quiz_total_count ?? 0,
+    chapter_final_completed: metrics?.chapter_final_completed ?? false,
+    risky_tags: metrics?.risky_tags ?? {},
+    tag_totals: metrics?.tag_totals ?? {},
+    tag_safe_counts: metrics?.tag_safe_counts ?? {},
+    risky_scene_ids: metrics?.risky_scene_ids ?? []
   };
 }
 
@@ -185,7 +204,25 @@ export function readCampaignKpiProgress(): CampaignKpiProgress {
   }
 
   try {
-    return JSON.parse(raw) as CampaignKpiProgress;
+    const parsed = JSON.parse(raw) as CampaignKpiProgress;
+    return Object.fromEntries(
+      Object.entries(parsed).map(([mode, modeMetrics]) => {
+        const normalizedChapters = Object.fromEntries(
+          Object.entries(modeMetrics.chapters ?? {}).map(([chapterId, chapterMetrics]) => [
+            chapterId,
+            normalizeChapterKpiMetrics(chapterMetrics)
+          ])
+        );
+
+        return [
+          mode,
+          {
+            chapters: normalizedChapters,
+            overall: normalizeChapterKpiMetrics(modeMetrics.overall)
+          }
+        ];
+      })
+    );
   } catch {
     return {};
   }
@@ -200,7 +237,7 @@ export function recordCampaignSceneKpi(
 ): CampaignKpiProgress {
   const progress = readCampaignKpiProgress();
   const modeMetrics = progress[mode] ?? emptyCampaignKpiMetrics();
-  const chapterMetrics = modeMetrics.chapters[chapterId] ?? emptyChapterKpiMetrics();
+  const chapterMetrics = normalizeChapterKpiMetrics(modeMetrics.chapters[chapterId]);
 
   chapterMetrics.scenes_completed_count += 1;
   modeMetrics.overall.scenes_completed_count += 1;
@@ -227,6 +264,16 @@ export function recordCampaignSceneKpi(
     }
   }
 
+  if (riskyTag && (riskLevel === 'safe' || riskLevel === 'risky')) {
+    chapterMetrics.tag_totals[riskyTag] = (chapterMetrics.tag_totals[riskyTag] ?? 0) + 1;
+    modeMetrics.overall.tag_totals[riskyTag] = (modeMetrics.overall.tag_totals[riskyTag] ?? 0) + 1;
+
+    if (riskLevel === 'safe') {
+      chapterMetrics.tag_safe_counts[riskyTag] = (chapterMetrics.tag_safe_counts[riskyTag] ?? 0) + 1;
+      modeMetrics.overall.tag_safe_counts[riskyTag] = (modeMetrics.overall.tag_safe_counts[riskyTag] ?? 0) + 1;
+    }
+  }
+
   progress[mode] = {
     ...modeMetrics,
     chapters: {
@@ -242,7 +289,7 @@ export function recordCampaignSceneKpi(
 export function recordCampaignQuizKpi(mode: string, chapterId: string, correct: boolean): CampaignKpiProgress {
   const progress = readCampaignKpiProgress();
   const modeMetrics = progress[mode] ?? emptyCampaignKpiMetrics();
-  const chapterMetrics = modeMetrics.chapters[chapterId] ?? emptyChapterKpiMetrics();
+  const chapterMetrics = normalizeChapterKpiMetrics(modeMetrics.chapters[chapterId]);
 
   chapterMetrics.quiz_total_count += 1;
   modeMetrics.overall.quiz_total_count += 1;
@@ -267,7 +314,7 @@ export function recordCampaignQuizKpi(mode: string, chapterId: string, correct: 
 export function markChapterFinalKpiCompleted(mode: string, chapterId: string): CampaignKpiProgress {
   const progress = readCampaignKpiProgress();
   const modeMetrics = progress[mode] ?? emptyCampaignKpiMetrics();
-  const chapterMetrics = modeMetrics.chapters[chapterId] ?? emptyChapterKpiMetrics();
+  const chapterMetrics = normalizeChapterKpiMetrics(modeMetrics.chapters[chapterId]);
 
   chapterMetrics.chapter_final_completed = true;
   modeMetrics.overall.chapter_final_completed = true;
@@ -282,4 +329,66 @@ export function markChapterFinalKpiCompleted(mode: string, chapterId: string): C
 
   localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(progress));
   return progress;
+}
+
+export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgress; campaignKpi: CampaignKpiProgress } {
+  const playerProgress: PlayerProgress = {
+    completedWeeklyIds: ['weekly-privacy-check', 'weekly-antifake-scan'],
+    completedLessonKitIds: ['kit-privacy', 'kit-antifake'],
+    badges: ['family-safety-check', 'myth-buster'],
+    skills: {
+      privacy: 7,
+      account: 6,
+      antifake: 8,
+      communication: 5,
+      antibullying: 6
+    }
+  };
+
+  const chapterMetrics: ChapterKpiMetrics = {
+    scenes_completed_count: 9,
+    safe_choices_count: 6,
+    risky_choices_count: 3,
+    quiz_correct_count: 7,
+    quiz_total_count: 9,
+    chapter_final_completed: true,
+    risky_tags: {
+      privacy: 1,
+      communication: 1,
+      account: 1
+    },
+    tag_totals: {
+      privacy: 3,
+      account: 2,
+      antifake: 2,
+      communication: 2
+    },
+    tag_safe_counts: {
+      privacy: 2,
+      account: 1,
+      antifake: 2,
+      communication: 1
+    },
+    risky_scene_ids: ['chats-geolocation', 'chats-pressure-admin', 'chats-evidence-trade']
+  };
+
+  const campaignKpi: CampaignKpiProgress = {
+    [mode]: {
+      chapters: {
+        chats: { ...chapterMetrics }
+      },
+      overall: { ...chapterMetrics }
+    }
+  };
+
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(playerProgress));
+  localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(campaignKpi));
+
+  return { playerProgress, campaignKpi };
+}
+
+export function clearParentsDemoData() {
+  localStorage.removeItem(PROGRESS_KEY);
+  localStorage.removeItem(CAMPAIGN_PROGRESS_KEY);
+  localStorage.removeItem(CAMPAIGN_KPI_KEY);
 }
