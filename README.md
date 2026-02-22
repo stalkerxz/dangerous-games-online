@@ -125,6 +125,17 @@ The web client emits and evaluates these events locally:
 
 PWA offline support is enabled via `vite-plugin-pwa` in the web app.
 
+## Parents / Teachers dashboard
+
+- New `/parents` page in web app shows a local skill summary for five areas: privacy, account safety, anti-fake, communication, and anti-bullying.
+- Each skill card includes short interpretation text and practical recommendations in Russian.
+- A **Copy report** button exports a clipboard-safe text summary without personal data.
+- Added **20-minute lesson kits** with 3 presets and 4 scenes each:
+  - `Приватность`
+  - `Антифейк`
+  - `Кибербуллинг` (includes `bullying_witness`-tagged scene)
+- Lesson kits run a simple linear ScenePlayer flow, display scene progress, show a finish screen, and persist completion locally (Completed badge).
+
 ## Docker
 
 Start API via compose:

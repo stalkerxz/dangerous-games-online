@@ -8,6 +8,7 @@ type ScenePlayerProps = {
   startSceneId?: string;
   ageMode?: AgeMode;
   footer?: ReactNode;
+  showSceneProgress?: boolean;
   onComplete?: () => void;
   onEvent?: (event: GameEvent) => void;
   eventContext?: {
@@ -22,6 +23,7 @@ export function ScenePlayer({
   startSceneId,
   ageMode = '11-14',
   footer,
+  showSceneProgress = false,
   onComplete,
   onEvent,
   eventContext
@@ -139,6 +141,7 @@ export function ScenePlayer({
   return (
     <article className="scene-card">
       <h3>{title}</h3>
+      {showSceneProgress && <p>Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>}
       <ul className="chat-log">
         {scene.chat.map((line, index) => (
           <li key={`${line.speaker}-${index}`}>
