@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { syncContentPacks, type CampaignPack, type ContentManifest } from './contentEngine';
+import { syncContentPacks, type CampaignPack, type ContentManifest, type WeeklyPack } from './contentEngine';
 
 type ContentState = {
   manifest: ContentManifest | null;
   campaign: CampaignPack | null;
+  weeklyPacks: WeeklyPack[];
   loading: boolean;
   source: 'network' | 'cache';
   error: string | null;
@@ -12,6 +13,7 @@ type ContentState = {
 const ContentContext = createContext<ContentState>({
   manifest: null,
   campaign: null,
+  weeklyPacks: [],
   loading: true,
   source: 'cache',
   error: null
@@ -21,6 +23,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ContentState>({
     manifest: null,
     campaign: null,
+    weeklyPacks: [],
     loading: true,
     source: 'cache',
     error: null
@@ -35,6 +38,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         setState({
           manifest: result.manifest,
           campaign: result.campaign,
+          weeklyPacks: result.weeklyPacks,
           loading: false,
           source: result.source,
           error: result.manifest ? null : 'Content manifest unavailable'

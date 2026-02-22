@@ -50,6 +50,7 @@ The API serves a manifest at `/content/manifest.json` with pack metadata (`id`, 
 
 Current sample packs:
 - `campaign_v1_1.0.0.json` – includes scenes with chat templates, choices, debrief notes, and quiz prompts.
+- `weekly_2026_w09_1.0.0.json` – weekly mission pack with active date range, start scene, and rewards.
 - `achievements_1.0.0.json` – minimal achievements payload.
 
 Web content sync flow:
@@ -57,7 +58,8 @@ Web content sync flow:
 2. Missing or outdated packs are downloaded.
 3. SHA-256 hashes are verified before caching.
 4. Packs are stored in IndexedDB, with localStorage fallback.
-5. Campaign page renders cached campaign scenes and remains available offline after first successful sync.
+5. Campaign and Weekly pages render cached scenes and remain available offline after first successful sync.
+6. Weekly completion is persisted locally (completed mission IDs, earned badges, and skill increments), and rewards are granted only once per weekly pack.
 
 PWA offline support is enabled via `vite-plugin-pwa` in the web app.
 
