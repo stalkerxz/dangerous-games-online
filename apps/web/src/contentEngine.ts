@@ -34,6 +34,11 @@ export type SceneChoice = {
   safe?: boolean;
   tags?: string[];
   actions?: string[];
+  effects?: {
+    clues?: string[];
+    actions?: string[];
+    skills?: Record<string, number>;
+  };
 };
 
 export type StoryScene = {

@@ -61,13 +61,15 @@ export function ScenePlayer({
   const onChoose = (choiceId: string) => {
     const choice = scene.choices.find((item) => item.id === choiceId);
     if (choice) {
+      const primaryTag = scene.tags?.[0] ?? choice.effects?.clues?.[0] ?? choice.tags?.[0] ?? '';
       onEvent?.({
         type: 'choice_made',
         payload: {
           sceneId: scene.id,
           safe: Boolean(choice.safe),
-          tag: scene.tags?.[0] ?? '',
-          choiceTag: choice.tags?.[0] ?? ''
+          tag: primaryTag,
+          choiceTag: choice.tags?.[0] ?? '',
+          clue: choice.effects?.clues?.[0] ?? ''
         }
       });
     }
@@ -85,7 +87,8 @@ export function ScenePlayer({
       type: 'quiz_answered',
       payload: {
         sceneId: scene.id,
-        tag: scene.tags?.[0] ?? '',
+        tag: scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? '',
+        clue: selectedChoice.effects?.clues?.[0] ?? '',
         correct: index === selectedChoice.quiz.answerIndex
       }
     });
@@ -93,15 +96,23 @@ export function ScenePlayer({
 
   const nextScene = () => {
     if (selectedChoice) {
+      const primaryTag = scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? selectedChoice.tags?.[0] ?? '';
       onEvent?.({
         type: 'scene_completed',
         payload: {
           sceneId: scene.id,
-          tag: scene.tags?.[0] ?? '',
+          tag: primaryTag,
+          clue: selectedChoice.effects?.clues?.[0] ?? '',
           safe: Boolean(selectedChoice.safe),
-          action: selectedChoice.actions?.[0] ?? ''
+          action: selectedChoice.effects?.actions?.[0] ?? selectedChoice.actions?.[0] ?? ''
         }
       });
+
+      if (selectedChoice.effects?.skills) {
+        for (const [skill, level] of Object.entries(selectedChoice.effects.skills)) {
+          onEvent?.({ type: 'skill_changed', payload: { skill, level } });
+        }
+      }
     }
 
     if (sceneIndex < scenes.length - 1) {
