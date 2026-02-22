@@ -12,11 +12,11 @@ registerSW({ immediate: true });
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ContentProvider>
-        <AgeModeProvider>
+      <AgeModeProvider>
+        <ContentProvider>
           <App />
-        </AgeModeProvider>
-      </ContentProvider>
+        </ContentProvider>
+      </AgeModeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
