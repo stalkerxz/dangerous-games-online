@@ -125,6 +125,34 @@ The web client emits and evaluates these events locally:
 
 PWA offline support is enabled via `vite-plugin-pwa` in the web app.
 
+
+## Campaign KPI metrics (offline, no personal data)
+
+The web app now tracks campaign KPIs locally per age mode, both **per chapter** and **overall**:
+
+- `scenes_completed_count`
+- `safe_choices_count` / `risky_choices_count`
+- `quiz_correct_count` / `quiz_total_count`
+- `chapter_final_completed`
+
+Risk classification for choices:
+
+1. If `choices[].effects.risk` is present and `<= 0`, it is treated as **safe**.
+2. If `choices[].effects.risk` is present and `> 0`, it is treated as **risky**.
+3. If missing, the client falls back to `tags` / `effects.clues` heuristics; if still unclear, it is stored as neutral (not counted as safe/risky).
+
+Storage:
+
+- KPI metrics are saved in browser local storage under `dgo-campaign-kpi:v1`.
+- Existing campaign map progress remains in `dgo-campaign-progress:v1`.
+- No KPI data is sent to backend APIs.
+
+UX additions:
+
+- Completing a chapter final shows a **Chapter Summary** with chapter KPI stats and 3 recommendations from most frequent risky tags.
+- The chapter summary includes **Repeat weak skill**, launching a short 3-scene remediation flow from that chapter.
+- `/parents` now includes an **Overall KPI summary** plus clipboard export for reporting.
+
 ## Parents / Teachers dashboard
 
 - New `/parents` page in web app shows a local skill summary for five areas: privacy, account safety, anti-fake, communication, and anti-bullying.

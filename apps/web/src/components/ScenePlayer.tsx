@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AgeMode, StoryScene } from '../contentEngine';
+import type { AgeMode, SceneChoice, StoryScene } from '../contentEngine';
 import type { GameEvent } from '../achievements';
 
 type ScenePlayerProps = {
@@ -12,10 +12,32 @@ type ScenePlayerProps = {
   onComplete?: () => void;
   onEvent?: (event: GameEvent) => void;
   eventContext?: {
+    chapterId?: string;
     weeklyId?: string;
     rewardSkills?: Record<string, number>;
   };
 };
+
+function classifyRisk(choice: SceneChoice): 'safe' | 'risky' | 'neutral' {
+  if (typeof choice.effects?.risk === 'number') {
+    return choice.effects.risk <= 0 ? 'safe' : 'risky';
+  }
+
+  const fallbackSignals = [
+    ...(choice.tags ?? []),
+    ...(choice.effects?.clues ?? [])
+  ].map((value) => value.toLowerCase());
+
+  if (fallbackSignals.some((value) => value.includes('safe') || value.includes('protect') || value.includes('evidence'))) {
+    return 'safe';
+  }
+
+  if (fallbackSignals.some((value) => value.includes('risk') || value.includes('unsafe') || value.includes('urgency') || value.includes('pressure'))) {
+    return 'risky';
+  }
+
+  return 'neutral';
+}
 
 export function ScenePlayer({
   title,
@@ -64,11 +86,14 @@ export function ScenePlayer({
     const choice = scene.choices.find((item) => item.id === choiceId);
     if (choice) {
       const primaryTag = scene.tags?.[0] ?? choice.effects?.clues?.[0] ?? choice.tags?.[0] ?? '';
+      const riskLevel = classifyRisk(choice);
       onEvent?.({
         type: 'choice_made',
         payload: {
           sceneId: scene.id,
-          safe: Boolean(choice.safe),
+          chapterId: eventContext?.chapterId ?? '',
+          safe: riskLevel === 'safe',
+          risk_level: riskLevel,
           tag: primaryTag,
           choiceTag: choice.tags?.[0] ?? '',
           clue: choice.effects?.clues?.[0] ?? ''
@@ -89,6 +114,7 @@ export function ScenePlayer({
       type: 'quiz_answered',
       payload: {
         sceneId: scene.id,
+        chapterId: eventContext?.chapterId ?? '',
         tag: scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? '',
         clue: selectedChoice.effects?.clues?.[0] ?? '',
         correct: index === selectedChoice.quiz.answerIndex
@@ -99,13 +125,16 @@ export function ScenePlayer({
   const nextScene = () => {
     if (selectedChoice) {
       const primaryTag = scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? selectedChoice.tags?.[0] ?? '';
+      const riskLevel = classifyRisk(selectedChoice);
       onEvent?.({
         type: 'scene_completed',
         payload: {
           sceneId: scene.id,
+          chapterId: eventContext?.chapterId ?? '',
           tag: primaryTag,
           clue: selectedChoice.effects?.clues?.[0] ?? '',
-          safe: Boolean(selectedChoice.safe),
+          safe: riskLevel === 'safe',
+          risk_level: riskLevel,
           action: selectedChoice.effects?.actions?.[0] ?? selectedChoice.actions?.[0] ?? ''
         }
       });

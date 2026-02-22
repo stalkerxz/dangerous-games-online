@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
-import { completeLessonKit, readPlayerProgress } from '../playerProgress';
+import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress } from '../playerProgress';
+import { useAgeMode } from '../ageMode';
 
 type SkillCard = {
   id: 'privacy' | 'account' | 'antifake' | 'communication' | 'antibullying';
@@ -90,6 +91,7 @@ const lessonKits: LessonKit[] = [
 
 export function ParentsPage() {
   const { campaign, loading } = useContent();
+  const { ageMode } = useAgeMode();
   const [progress, setProgress] = useState(() => readPlayerProgress());
   const [activeKitId, setActiveKitId] = useState<string | null>(null);
   const [finishedKitId, setFinishedKitId] = useState<string | null>(null);
@@ -108,9 +110,31 @@ export function ParentsPage() {
       .filter((scene): scene is StoryScene => scene !== undefined);
   }, [activeKit, campaign]);
 
+
+  const campaignKpi = useMemo(() => readCampaignKpiProgress()[ageMode], [ageMode]);
+
+  const skillRanking = useMemo(() => {
+    const entries = Object.entries(campaignKpi?.overall.risky_tags ?? {});
+    if (entries.length === 0) {
+      return { strongest: 'n/a', weakest: 'n/a' };
+    }
+
+    const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+    return {
+      weakest: sorted[0][0],
+      strongest: sorted[sorted.length - 1][0]
+    };
+  }, [campaignKpi]);
+
   const reportText = useMemo(() => {
     const lines = [
       'Отчёт по навыкам цифровой безопасности (без персональных данных):',
+      `Сцены завершено: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
+      `Выборы (safe/risky): ${campaignKpi?.overall.safe_choices_count ?? 0}/${campaignKpi?.overall.risky_choices_count ?? 0}`,
+      `Квизы: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
+      `Финал главы завершён: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'да' : 'нет'}`,
+      `Сильный навык: ${skillRanking.strongest}`,
+      `Слабый навык: ${skillRanking.weakest}`,
       ...skillCards.map((skill) => {
         const value = progress.skills[skill.id] ?? 0;
         return `- ${skill.label}: ${value}`;
@@ -119,7 +143,7 @@ export function ParentsPage() {
     ];
 
     return lines.join('\n');
-  }, [progress]);
+  }, [campaignKpi, progress, skillRanking]);
 
   const onCopyReport = async () => {
     try {
@@ -180,6 +204,14 @@ export function ParentsPage() {
     <section>
       <h2>Parents / Teachers dashboard</h2>
       <p>Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
+
+      <h3>Overall KPI summary</h3>
+      <p>Scenes completed: {campaignKpi?.overall.scenes_completed_count ?? 0}</p>
+      <p>Safe vs risky choices: {campaignKpi?.overall.safe_choices_count ?? 0}/{campaignKpi?.overall.risky_choices_count ?? 0}</p>
+      <p>Quiz correctness: {campaignKpi?.overall.quiz_correct_count ?? 0}/{campaignKpi?.overall.quiz_total_count ?? 0}</p>
+      <p>Final completed: {(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}</p>
+      <p>Strongest skill: {skillRanking.strongest}</p>
+      <p>Weakest skill: {skillRanking.weakest}</p>
 
       <button type="button" onClick={onCopyReport}>Copy report</button>
       {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
