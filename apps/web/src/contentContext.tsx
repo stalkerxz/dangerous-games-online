@@ -1,10 +1,17 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { syncContentPacks, type CampaignPack, type ContentManifest, type WeeklyPack } from './contentEngine';
+import {
+  syncContentPacks,
+  type AchievementPack,
+  type CampaignPack,
+  type ContentManifest,
+  type WeeklyPack
+} from './contentEngine';
 
 type ContentState = {
   manifest: ContentManifest | null;
   campaign: CampaignPack | null;
   weeklyPacks: WeeklyPack[];
+  achievements: AchievementPack | null;
   loading: boolean;
   source: 'network' | 'cache';
   error: string | null;
@@ -14,6 +21,7 @@ const ContentContext = createContext<ContentState>({
   manifest: null,
   campaign: null,
   weeklyPacks: [],
+  achievements: null,
   loading: true,
   source: 'cache',
   error: null
@@ -24,6 +32,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     manifest: null,
     campaign: null,
     weeklyPacks: [],
+    achievements: null,
     loading: true,
     source: 'cache',
     error: null
@@ -39,6 +48,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
           manifest: result.manifest,
           campaign: result.campaign,
           weeklyPacks: result.weeklyPacks,
+          achievements: result.achievements,
           loading: false,
           source: result.source,
           error: result.manifest ? null : 'Content manifest unavailable'

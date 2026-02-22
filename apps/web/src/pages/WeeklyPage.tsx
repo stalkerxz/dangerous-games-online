@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import { completeWeeklyMission, readPlayerProgress } from '../playerProgress';
+import { processAchievementEvent, type GameEvent } from '../achievements';
 
 function isBetweenInclusive(today: string, start: string, end: string) {
   return today >= start && today <= end;
 }
 
 export function WeeklyPage() {
-  const { weeklyPacks, loading } = useContent();
+  const { weeklyPacks, achievements, loading } = useContent();
   const [progress, setProgress] = useState(() => readPlayerProgress());
   const today = new Date().toISOString().slice(0, 10);
 
@@ -29,6 +30,16 @@ export function WeeklyPage() {
 
     const result = completeWeeklyMission(activeWeekly.id, activeWeekly.rewards);
     setProgress(result.progress);
+
+    if (result.updated) {
+      for (const [skill, level] of Object.entries(result.progress.skills)) {
+        processAchievementEvent(achievements, { type: 'skill_changed', payload: { skill, level } });
+      }
+    }
+  };
+
+  const onEvent = (event: GameEvent) => {
+    processAchievementEvent(achievements, event);
   };
 
   return (
@@ -50,6 +61,8 @@ export function WeeklyPage() {
             scenes={activeWeekly.scenes}
             startSceneId={activeWeekly.start_scene}
             onComplete={onComplete}
+            onEvent={onEvent}
+            eventContext={{ weeklyId: activeWeekly.id }}
             footer={(
               <p>
                 Reward: badge <strong>{activeWeekly.rewards.badge}</strong>, skills{' '}
