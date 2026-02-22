@@ -24,7 +24,7 @@ export type SceneChoice = {
   quiz: ChoiceQuiz;
 };
 
-export type CampaignScene = {
+export type StoryScene = {
   id: string;
   title: string;
   chat: Array<{ speaker: string; text: string }>;
@@ -36,7 +36,24 @@ export type CampaignPack = {
   type: 'campaign';
   version: string;
   title: string;
-  scenes: CampaignScene[];
+  scenes: StoryScene[];
+};
+
+export type WeeklyReward = {
+  badge: string;
+  skills: Record<string, number>;
+};
+
+export type WeeklyPack = {
+  id: string;
+  type: 'weekly';
+  version: string;
+  start_date: string;
+  end_date: string;
+  title: string;
+  start_scene: string;
+  rewards: WeeklyReward;
+  scenes: StoryScene[];
 };
 
 type CachedPackRecord = {
@@ -127,6 +144,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 export async function syncContentPacks(): Promise<{
   manifest: ContentManifest | null;
   campaign: CampaignPack | null;
+  weeklyPacks: WeeklyPack[];
   source: 'network' | 'cache';
 }> {
   const manifestUrl = `${API_BASE_URL}/content/manifest.json`;
@@ -141,11 +159,12 @@ export async function syncContentPacks(): Promise<{
   if (!manifest) {
     const fallback = await readPack('manifest@latest');
     if (!fallback) {
-      return { manifest: null, campaign: null, source: 'cache' };
+      return { manifest: null, campaign: null, weeklyPacks: [], source: 'cache' };
     }
     const cachedManifest = fallback.data as ContentManifest;
     const campaign = await loadCampaignFromCache(cachedManifest);
-    return { manifest: cachedManifest, campaign, source: 'cache' };
+    const weeklyPacks = await loadWeeklyPacksFromCache(cachedManifest);
+    return { manifest: cachedManifest, campaign, weeklyPacks, source: 'cache' };
   }
 
   await savePack({ key: 'manifest@latest', hash: manifest.version, data: manifest });
@@ -172,7 +191,8 @@ export async function syncContentPacks(): Promise<{
   }
 
   const campaign = await loadCampaignFromCache(manifest);
-  return { manifest, campaign, source: 'network' };
+  const weeklyPacks = await loadWeeklyPacksFromCache(manifest);
+  return { manifest, campaign, weeklyPacks, source: 'network' };
 }
 
 async function loadCampaignFromCache(manifest: ContentManifest): Promise<CampaignPack | null> {
@@ -187,4 +207,19 @@ async function loadCampaignFromCache(manifest: ContentManifest): Promise<Campaig
   }
 
   return cached.data as CampaignPack;
+}
+
+async function loadWeeklyPacksFromCache(manifest: ContentManifest): Promise<WeeklyPack[]> {
+  const weeklyEntries = manifest.packs.filter((pack) => pack.type === 'weekly');
+  const results = await Promise.all(
+    weeklyEntries.map(async (weeklyEntry) => {
+      const cached = await readPack(toStorageKey(weeklyEntry));
+      if (!cached || cached.hash !== weeklyEntry.sha256) {
+        return null;
+      }
+      return cached.data as WeeklyPack;
+    })
+  );
+
+  return results.filter((pack): pack is WeeklyPack => pack !== null);
 }
