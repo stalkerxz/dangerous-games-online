@@ -118,3 +118,26 @@ main {
 .status-error {
   color: #991b1b;
 }
+
+.campaign-map {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.chapter-card {
+  border: 1px solid #dbeafe;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+}
+
+.chapter-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chapter-actions button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

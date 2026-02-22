@@ -5,7 +5,15 @@ export type PlayerProgress = {
   skills: Record<string, number>;
 };
 
+export type CampaignModeProgress = {
+  completedScenes: Record<string, { safe: boolean }>;
+  completedFinals: Record<string, boolean>;
+};
+
+export type CampaignProgress = Record<string, CampaignModeProgress>;
+
 const PROGRESS_KEY = 'dgo-player-progress:v1';
+const CAMPAIGN_PROGRESS_KEY = 'dgo-campaign-progress:v1';
 
 const EMPTY_PROGRESS: PlayerProgress = {
   completedWeeklyIds: [],
@@ -75,4 +83,56 @@ export function completeWeeklyMission(
   };
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
   return { updated: true, progress };
+}
+
+function emptyCampaignModeProgress(): CampaignModeProgress {
+  return {
+    completedScenes: {},
+    completedFinals: {}
+  };
+}
+
+export function readCampaignProgress(): CampaignProgress {
+  const raw = localStorage.getItem(CAMPAIGN_PROGRESS_KEY);
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(raw) as CampaignProgress;
+  } catch {
+    return {};
+  }
+}
+
+export function markCampaignSceneCompleted(mode: string, sceneId: string, safe: boolean): CampaignProgress {
+  const progress = readCampaignProgress();
+  const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
+
+  progress[mode] = {
+    ...modeProgress,
+    completedScenes: {
+      ...modeProgress.completedScenes,
+      [sceneId]: { safe }
+    }
+  };
+
+  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(progress));
+  return progress;
+}
+
+export function markChapterFinalCompleted(mode: string, chapterId: string): CampaignProgress {
+  const progress = readCampaignProgress();
+  const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
+
+  progress[mode] = {
+    ...modeProgress,
+    completedFinals: {
+      ...modeProgress.completedFinals,
+      [chapterId]: true
+    }
+  };
+
+  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(progress));
+  return progress;
 }
