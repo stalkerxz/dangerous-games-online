@@ -42,6 +42,24 @@ npm run build
 - `GET /health`
 - `GET /content/manifest.json`
 - Static files under `GET /content/published/*`
+- `GET /docs` (FastAPI Swagger UI)
+
+## Content packs
+
+The API serves a manifest at `/content/manifest.json` with pack metadata (`id`, `type`, `version`, `url`, `sha256`). Published pack files live in `apps/api/content/published`.
+
+Current sample packs:
+- `campaign_v1_1.0.0.json` – includes scenes with chat templates, choices, debrief notes, and quiz prompts.
+- `achievements_1.0.0.json` – minimal achievements payload.
+
+Web content sync flow:
+1. On app startup the web client fetches the manifest from `VITE_API_BASE_URL` (defaults to `http://localhost:8000`).
+2. Missing or outdated packs are downloaded.
+3. SHA-256 hashes are verified before caching.
+4. Packs are stored in IndexedDB, with localStorage fallback.
+5. Campaign page renders cached campaign scenes and remains available offline after first successful sync.
+
+PWA offline support is enabled via `vite-plugin-pwa` in the web app.
 
 ## Docker
 

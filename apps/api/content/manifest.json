@@ -1,10 +1,7 @@
 {
-  "version": 1,
+  "version": "1.0.0",
   "packs": [
-    {
-      "id": "starter-pack",
-      "name": "Starter Pack",
-      "path": "/content/published/starter-pack.json"
-    }
+    {"id":"campaign_v1","type":"campaign","version":"1.0.0","url":"/content/published/campaign_v1_1.0.0.json","sha256":"d2071b1097fa4558fc0f8bbe5da3aa8022b6e267d7b09cd83fc09e42a2417553"},
+    {"id":"achievements","type":"achievements","version":"1.0.0","url":"/content/published/achievements_1.0.0.json","sha256":"bf95c767377c0ef8afe3cbda057e0e391139660971413bb188ef29325ec7c5c6"}
   ]
 }

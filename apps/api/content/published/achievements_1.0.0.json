@@ -1,0 +1,12 @@
+{
+  "id": "achievements",
+  "type": "achievements",
+  "version": "1.0.0",
+  "items": [
+    {
+      "id": "security-first-step",
+      "name": "Security First Step",
+      "description": "Complete your first safe choice in campaign mode."
+    }
+  ]
+}
