@@ -1,0 +1,16 @@
+{
+  "name": "dangerous-games-online",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "scripts": {
+    "dev": "bash -lc \"npm run web:dev & npm run api:dev & wait\"",
+    "web:dev": "npm run dev -w apps/web",
+    "api:dev": "bash ./scripts/api-dev.sh",
+    "lint": "npm run lint -w apps/web && bash ./scripts/api-lint.sh",
+    "build": "npm run build -w apps/web && bash ./scripts/api-build.sh"
+  }
+}
