@@ -16,9 +16,9 @@ const navItems = [
 export function App() {
   return (
     <div className="layout">
-      <header>
+      <header className="site-header">
         <h1>Dangerous Games Online</h1>
-        <nav>
+        <nav className="desktop-nav" aria-label="Primary">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -41,6 +41,18 @@ export function App() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
+
+      <nav className="mobile-tab-bar" aria-label="Mobile tabs">
+        {navItems.map((item) => (
+          <NavLink
+            key={`mobile-${item.to}`}
+            to={item.to}
+            className={({ isActive }) => (isActive ? 'active' : '')}
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }

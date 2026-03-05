@@ -169,8 +169,8 @@ export function ScenePlayer({
 
   return (
     <article className="scene-card">
-      <h3>{title}</h3>
-      {showSceneProgress && <p>Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>}
+      <h3 className="scene-title">{title}</h3>
+      {showSceneProgress && <p className="scene-progress">Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>}
       <ul className="chat-log">
         {scene.chat.map((line, index) => (
           <li key={`${line.speaker}-${index}`}>
@@ -181,7 +181,7 @@ export function ScenePlayer({
 
       <div className="choices">
         {scene.choices.map((choice) => (
-          <button key={choice.id} type="button" onClick={() => onChoose(choice.id)}>
+          <button className="choice-button" key={choice.id} type="button" onClick={() => onChoose(choice.id)}>
             {choice.label}
           </button>
         ))}
@@ -191,21 +191,24 @@ export function ScenePlayer({
         <div className="debrief">
           <h4>Debrief</h4>
           <p>{selectedChoice.debrief}</p>
-          <h5>Quiz</h5>
-          <p>{selectedChoice.quiz.question}</p>
-          <ol>
-            {selectedChoice.quiz.options.map((option, index) => (
-              <li key={option}>
-                <button type="button" onClick={() => onAnswerQuiz(index)}>
-                  {option}
-                </button>
-                {selectedQuizOption === index && index === selectedChoice.quiz.answerIndex ? ' ✅' : ''}
-              </li>
-            ))}
-          </ol>
-          <button type="button" onClick={nextScene} disabled={selectedQuizOption === null}>
-            {sceneIndex < scenes.length - 1 ? 'Next scene' : isCompleted ? 'Completed' : 'Finish mission'}
-          </button>
+
+          <div className="quiz-card">
+            <h5>Quiz</h5>
+            <p>{selectedChoice.quiz.question}</p>
+            <ol className="quiz-options">
+              {selectedChoice.quiz.options.map((option, index) => (
+                <li key={option}>
+                  <button className="choice-button" type="button" onClick={() => onAnswerQuiz(index)}>
+                    {option}
+                  </button>
+                  {selectedQuizOption === index && index === selectedChoice.quiz.answerIndex ? ' ✅' : ''}
+                </li>
+              ))}
+            </ol>
+            <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null}>
+              {sceneIndex < scenes.length - 1 ? 'Next scene' : isCompleted ? 'Completed' : 'Finish mission'}
+            </button>
+          </div>
         </div>
       )}
       {footer}
