@@ -17,5 +17,8 @@
     "android:build": "npm run android:sync && echo 'Open Android Studio via npm run android:open, then Build > Build Bundle(s) / APK(s) > Build APK(s) or Build Bundle(s). For release AAB, use Build > Generate Signed Bundle / APK.'",
     "lint": "npm run lint -w apps/web && bash ./scripts/api-lint.sh",
     "build": "npm run build -w apps/web && bash ./scripts/api-build.sh"
+  },
+  "devDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.59.0"
   }
 }
