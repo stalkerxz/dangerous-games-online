@@ -18,7 +18,5 @@
     "lint": "npm run lint -w apps/web && bash ./scripts/api-lint.sh",
     "build": "npm run build -w apps/web && bash ./scripts/api-build.sh"
   },
-  "devDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.59.0"
-  }
+  "devDependencies": {}
 }
