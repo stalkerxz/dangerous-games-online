@@ -12,7 +12,7 @@ export type ContentManifest = {
 };
 
 
-export type AgeMode = '8-10' | '11-14';
+export type AgeMode = '8-10' | '11-14' | 'all';
 
 export type SceneAttachment = {
   type: 'image' | 'file';
@@ -62,7 +62,7 @@ export type StoryScene = {
   choices: SceneChoice[];
   tags?: string[];
   modes?: AgeMode[];
-  modeContent?: Partial<Record<AgeMode, ModeSceneContent>>;
+  modeContent?: Partial<Record<Exclude<AgeMode, 'all'>, ModeSceneContent>>;
 };
 
 export type CampaignChapter = {

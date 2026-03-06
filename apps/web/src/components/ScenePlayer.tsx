@@ -115,7 +115,7 @@ export function ScenePlayer({
   }, [initialIndex, scenes, ageMode]);
 
   const baseScene = scenes[sceneIndex];
-  const modeScene = baseScene.modeContent?.[ageMode];
+  const modeScene = ageMode === 'all' ? undefined : baseScene.modeContent?.[ageMode];
   const scene = {
     ...baseScene,
     title: modeScene?.title ?? baseScene.title,
