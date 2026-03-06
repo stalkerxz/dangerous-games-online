@@ -14,9 +14,22 @@ export type ContentManifest = {
 
 export type AgeMode = '8-10' | '11-14';
 
+export type SceneAttachment = {
+  type: 'image' | 'file';
+  label: string;
+  src?: string;
+};
+
+export type SceneMessage = {
+  speaker: string;
+  text: string;
+  delay_ms?: number;
+  attachment?: SceneAttachment;
+};
+
 export type ModeSceneContent = {
   title?: string;
-  chat?: Array<{ speaker: string; text: string }>;
+  chat?: SceneMessage[];
   choices?: SceneChoice[];
 };
 
@@ -45,7 +58,7 @@ export type SceneChoice = {
 export type StoryScene = {
   id: string;
   title: string;
-  chat: Array<{ speaker: string; text: string }>;
+  chat: SceneMessage[];
   choices: SceneChoice[];
   tags?: string[];
   modes?: AgeMode[];
