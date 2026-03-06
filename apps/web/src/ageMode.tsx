@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
-export type AgeMode = '8-10' | '11-14';
+export type AgeMode = '8-10' | '11-14' | 'all';
 
 type AgeModeContextValue = {
   ageMode: AgeMode;
@@ -16,7 +16,10 @@ const AgeModeContext = createContext<AgeModeContextValue>({
 
 function readAgeMode(): AgeMode {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === '8-10' ? '8-10' : '11-14';
+  if (stored === '8-10' || stored === '11-14' || stored === 'all') {
+    return stored;
+  }
+  return '11-14';
 }
 
 export function AgeModeProvider({ children }: { children: ReactNode }) {
