@@ -25,6 +25,24 @@ const HIGHLIGHT_TERMS: Record<string, string[]> = {
   antifake: ['админ', 'поддержка', 'проверка']
 };
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000';
+
+function trimTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, '');
+}
+
+function resolveAttachmentSrc(src: string | undefined): string | undefined {
+  if (!src) {
+    return undefined;
+  }
+
+  if (src.startsWith('/content/')) {
+    return `${trimTrailingSlashes(API_BASE_URL)}${src}`;
+  }
+
+  return src;
+}
+
 function classifyRisk(choice: SceneChoice): 'safe' | 'risky' | 'neutral' {
   if (typeof choice.effects?.risk === 'number') {
     return choice.effects.risk <= 0 ? 'safe' : 'risky';
@@ -106,6 +124,7 @@ export function ScenePlayer({
   const [visibleChatCount, setVisibleChatCount] = useState(0);
   const [typingMessage, setTypingMessage] = useState<SceneMessage | null>(null);
   const chatListRef = useRef<HTMLUListElement | null>(null);
+  const checkedAttachmentSrcRef = useRef(new Set<string>());
 
   useEffect(() => {
     setSceneIndex(initialIndex);
@@ -178,6 +197,44 @@ export function ScenePlayer({
 
     chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
   }, [visibleChatCount, typingMessage]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const imageSrcs = scene.chat
+      .map((message) => (message.attachment?.type === 'image' ? resolveAttachmentSrc(message.attachment.src) : undefined))
+      .filter((src): src is string => Boolean(src));
+
+    for (const src of imageSrcs) {
+      if (checkedAttachmentSrcRef.current.has(src)) {
+        continue;
+      }
+      checkedAttachmentSrcRef.current.add(src);
+
+      fetch(src, { method: 'GET', signal: controller.signal })
+        .then((response) => {
+          const contentType = response.headers.get('content-type') ?? '';
+          if (!contentType.toLowerCase().startsWith('image/')) {
+            console.warn(`[ScenePlayer] Attachment src did not return image content-type: ${src}`, {
+              contentType,
+              status: response.status
+            });
+          }
+        })
+        .catch((error: unknown) => {
+          if ((error as Error).name !== 'AbortError') {
+            console.warn(`[ScenePlayer] Failed to validate attachment src: ${src}`, error);
+          }
+        });
+    }
+
+    return () => {
+      controller.abort();
+    };
+  }, [scene.chat]);
 
   const selectedChoice = scene.choices.find((choice) => choice.id === selectedChoiceId) ?? null;
 
@@ -271,22 +328,25 @@ export function ScenePlayer({
       <h3 className="scene-title">{title}</h3>
       {showSceneProgress && <p className="scene-progress">Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>}
       <ul aria-live="polite" aria-relevant="additions text" className="chat-log" ref={chatListRef}>
-        {scene.chat.slice(0, visibleChatCount).map((line, index) => (
-          <li key={`${line.speaker}-${index}`}>
-            <p className="chat-bubble">
-              <strong>{line.speaker}:</strong> {renderHighlightedText(line.text, highlightTerms)}
-            </p>
-            {line.attachment && (
-              <div aria-label={`Attachment: ${line.attachment.label}`} className="attachment-card" role="group">
-                <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Image' : '📎 File'}</span>
-                <p>{line.attachment.label}</p>
-                {line.attachment.type === 'image' && line.attachment.src && (
-                  <img alt={line.attachment.label} className="attachment-preview" loading="lazy" src={line.attachment.src} />
-                )}
-              </div>
-            )}
-          </li>
-        ))}
+        {scene.chat.slice(0, visibleChatCount).map((line, index) => {
+          const resolvedAttachmentSrc = line.attachment?.type === 'image' ? resolveAttachmentSrc(line.attachment.src) : undefined;
+          return (
+            <li key={`${line.speaker}-${index}`}>
+              <p className="chat-bubble">
+                <strong>{line.speaker}:</strong> {renderHighlightedText(line.text, highlightTerms)}
+              </p>
+              {line.attachment && (
+                <div aria-label={`Attachment: ${line.attachment.label}`} className="attachment-card" role="group">
+                  <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Image' : '📎 File'}</span>
+                  <p>{line.attachment.label}</p>
+                  {line.attachment.type === 'image' && resolvedAttachmentSrc && (
+                    <img alt={line.attachment.label} className="attachment-preview" loading="lazy" src={resolvedAttachmentSrc} />
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
         {typingMessage && (
           <li className="typing-row" key={`${typingMessage.speaker}-typing`}>
             <p aria-label={`${typingMessage.speaker} is typing`} className="typing-bubble" role="status">
