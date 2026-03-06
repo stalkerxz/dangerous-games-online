@@ -92,6 +92,62 @@ main {
   gap: 0.5rem;
 }
 
+
+.chat-log {
+  max-height: min(44vh, 420px);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.chat-bubble,
+.typing-bubble {
+  margin: 0;
+  display: inline-block;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.typing-bubble {
+  color: #475569;
+  font-style: italic;
+}
+
+.risk-highlight {
+  background: #fef08a;
+  color: inherit;
+  border-radius: 0.2rem;
+  padding: 0 0.1rem;
+}
+
+.attachment-card {
+  margin-top: 0.4rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.attachment-card p,
+.attachment-type {
+  margin: 0;
+}
+
+.attachment-type {
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+.attachment-preview {
+  width: 100%;
+  max-width: 220px;
+  border-radius: 0.35rem;
+  border: 1px solid #cbd5e1;
+}
+
 .choices {
   display: grid;
   gap: 0.5rem;
@@ -275,4 +331,24 @@ main {
   .quiz-card {
     box-shadow: 0 8px 18px -14px rgba(15, 23, 42, 0.65);
   }
+}
+
+.clues-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.clue-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: #fcfcfc;
+}
+
+.clue-card h3,
+.clue-card p {
+  margin: 0 0 0.5rem;
 }

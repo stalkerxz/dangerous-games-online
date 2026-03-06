@@ -2,7 +2,8 @@ import { useAgeMode, type AgeMode } from '../ageMode';
 
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
-  { value: '11-14', label: '11-14', hint: 'Более подробные формулировки и контекст.' }
+  { value: '11-14', label: '11-14', hint: 'Более подробные формулировки и контекст.' },
+  { value: 'all', label: 'All — Полный чат (демо)', hint: 'Показывает полный чат со всеми эффектами (delay, вложения).' }
 ];
 
 export function SettingsPage() {

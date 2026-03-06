@@ -4,12 +4,14 @@ import { CampaignPage } from './pages/CampaignPage';
 import { ParentsPage } from './pages/ParentsPage';
 import { WeeklyPage } from './pages/WeeklyPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CluesPage } from './pages/CluesPage';
 
 const navItems = [
   { to: '/campaign', label: 'Campaign' },
   { to: '/weekly', label: 'Weekly' },
   { to: '/achievements', label: 'Achievements' },
   { to: '/parents', label: 'Parents' },
+  { to: '/clues', label: 'Улики' },
   { to: '/settings', label: 'Settings' }
 ];
 
@@ -38,6 +40,7 @@ export function App() {
           <Route path="/weekly" element={<WeeklyPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/parents" element={<ParentsPage />} />
+          <Route path="/clues" element={<CluesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
