@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AgeMode, SceneChoice, StoryScene } from '../contentEngine';
 import type { GameEvent } from '../achievements';
+import { recordSceneClues } from '../cluesCollection';
 
 type ScenePlayerProps = {
   title: string;
@@ -124,6 +125,7 @@ export function ScenePlayer({
 
   const nextScene = () => {
     if (selectedChoice) {
+      recordSceneClues(scene, selectedChoice);
       const primaryTag = scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? selectedChoice.tags?.[0] ?? '';
       const riskLevel = classifyRisk(selectedChoice);
       onEvent?.({
