@@ -16,7 +16,8 @@
     "android:dev": "npm run android:sync && npm run android:open",
     "android:build": "npm run android:sync && echo 'Open Android Studio via npm run android:open, then Build > Build Bundle(s) / APK(s) > Build APK(s) or Build Bundle(s). For release AAB, use Build > Generate Signed Bundle / APK.'",
     "lint": "npm run lint -w apps/web && bash ./scripts/api-lint.sh",
-    "build": "npm run build -w apps/web && bash ./scripts/api-build.sh"
+    "build": "npm run build -w apps/web && bash ./scripts/api-build.sh",
+    "preinstall": "node -e \"const p=require('./package.json');const has=o=>o&&o['@rollup/rollup-linux-x64-gnu'];if(has(p.dependencies)||has(p.devDependencies)||has(p.optionalDependencies)||has(p.peerDependencies)){console.error('ERROR: remove @rollup/rollup-linux-x64-gnu (linux-only) from package.json');process.exit(1);}\""
   },
   "devDependencies": {}
 }
