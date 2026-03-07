@@ -19,11 +19,21 @@ type LessonKit = {
   sceneIds: string[];
 };
 
+const readableTagLabels: Record<string, string> = {
+  urgency: 'Давление и срочность',
+  privacy: 'Личные данные',
+  account: 'Защита аккаунта',
+  antifake: 'Проверка информации',
+  bullying_witness: 'Реакция на травлю',
+  antibullying: 'Реакция на травлю',
+  communication: 'Безопасное общение'
+};
+
 const skillCards: SkillCard[] = [
   {
     id: 'privacy',
-    label: 'Приватность',
-    meaning: 'Показывает, насколько уверенно ребёнок защищает личные данные и границы.',
+    label: 'Личные данные',
+    meaning: 'Насколько уверенно ребёнок защищает персональную информацию и личные границы.',
     recommendations: [
       'Обсудите правило: адрес, школа, номер телефона не публикуются в открытых чатах.',
       'Потренируйте фразы отказа, когда просят фото, геолокацию или личные контакты.',
@@ -32,8 +42,8 @@ const skillCards: SkillCard[] = [
   },
   {
     id: 'account',
-    label: 'Безопасность аккаунта',
-    meaning: 'Отражает привычки по защите входа, паролей и подозрительных ссылок.',
+    label: 'Защита аккаунта',
+    meaning: 'Показывает привычки по защите входа, паролей и подозрительных ссылок.',
     recommendations: [
       'Напомните: коды подтверждения и пароли нельзя отправлять никому, даже “админу”.',
       'Включите двухфакторную защиту там, где это возможно.',
@@ -42,7 +52,7 @@ const skillCards: SkillCard[] = [
   },
   {
     id: 'antifake',
-    label: 'Антифейк',
+    label: 'Проверка информации',
     meaning: 'Показывает, как ребёнок проверяет правдивость сообщений и “срочных” новостей.',
     recommendations: [
       'Используйте правило двух источников: не верить одному скриншоту или одному каналу.',
@@ -52,7 +62,7 @@ const skillCards: SkillCard[] = [
   },
   {
     id: 'communication',
-    label: 'Коммуникация',
+    label: 'Безопасное общение',
     meaning: 'Показывает умение спокойно общаться, просить помощь и фиксировать договорённости.',
     recommendations: [
       'Договоритесь о фразе-сигнале, когда нужна помощь взрослого.',
@@ -62,7 +72,7 @@ const skillCards: SkillCard[] = [
   },
   {
     id: 'antibullying',
-    label: 'Антибуллинг',
+    label: 'Реакция на травлю',
     meaning: 'Отражает навыки реагирования на травлю, поддержку свидетеля и сохранение доказательств.',
     recommendations: [
       'Повторите алгоритм: не отвечать агрессией, сохранить скриншоты, сообщить взрослому.',
@@ -89,6 +99,10 @@ const lessonKits: LessonKit[] = [
     sceneIds: ['chats-bullying-proof', 'chats-evidence-trade', 'chats-evidence-fake-support', 'chats-final-checklist']
   }
 ];
+
+function toReadableSkillName(value: string): string {
+  return readableTagLabels[value] ?? value;
+}
 
 export function ParentsPage() {
   const { campaign, achievements, loading } = useContent();
@@ -131,8 +145,8 @@ export function ParentsPage() {
 
     if (totalTaggedEvents < 5 || entries.length <= 1) {
       return {
-        strongest: 'n/a (not enough data)',
-        weakest: 'n/a (not enough data)'
+        strongest: 'Недостаточно данных',
+        weakest: 'Недостаточно данных'
       };
     }
 
@@ -140,10 +154,15 @@ export function ParentsPage() {
     const weakest = [...entries].sort((a, b) => a.safeRatio - b.safeRatio)[0].tag;
 
     return {
-      strongest,
-      weakest: strongest === weakest ? 'n/a (not enough data)' : weakest
+      strongest: toReadableSkillName(strongest),
+      weakest: strongest === weakest ? 'Недостаточно данных' : toReadableSkillName(weakest)
     };
   }, [campaignKpi]);
+
+  const weakSkillCard = useMemo(
+    () => skillCards.find((card) => card.label === skillRanking.weakest) ?? skillCards[0],
+    [skillRanking.weakest]
+  );
 
   const shortReportText = useMemo(() => {
     const lines = [
@@ -255,46 +274,88 @@ export function ParentsPage() {
   }
 
   return (
-    <section>
-      <h2>Parents / Teachers dashboard</h2>
+    <section className="parents-page">
+      <h2>Панель для родителей и наставников</h2>
       <p className="section-meta">Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
 
-      <h3>Overall KPI summary</h3>
-      <p>Scenes completed: {campaignKpi?.overall.scenes_completed_count ?? 0}</p>
-      <p>Safe choices: {safeChoices}</p>
-      <p>Risky choices: {riskyChoices}</p>
-      {safePercent !== null && <p>Percent safe: {safePercent}%</p>}
-      <p>Quiz correctness: {campaignKpi?.overall.quiz_correct_count ?? 0}/{campaignKpi?.overall.quiz_total_count ?? 0}</p>
-      <p>Final completed: {(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}</p>
-      <p>Strongest skill: {skillRanking.strongest}</p>
-      <p>Weakest skill: {skillRanking.weakest}</p>
+      <article className="parents-summary-card">
+        <div>
+          <p className="summary-label">Пройдено сцен</p>
+          <p className="summary-value">{campaignKpi?.overall.scenes_completed_count ?? 0}</p>
+        </div>
+        <div>
+          <p className="summary-label">Самый устойчивый навык</p>
+          <p className="summary-value summary-skill">{skillRanking.strongest}</p>
+        </div>
+        <div>
+          <p className="summary-label">Зона роста</p>
+          <p className="summary-value summary-skill">{skillRanking.weakest}</p>
+        </div>
+        <button
+          type="button"
+          className="recommendation-cta"
+          onClick={() => document.getElementById('recommendations')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        >
+          Смотреть рекомендацию
+        </button>
+      </article>
 
-      <button type="button" onClick={() => copyText(shortReportText)}>Copy short report</button>
-      <button type="button" onClick={() => copyText(competitionReportText)}>Copy competition report</button>
-      {import.meta.env.DEV && (
-        <>
-          <button type="button" onClick={onLoadDemoData}>Load demo data</button>
-          <button type="button" onClick={onClearDemoData}>Clear demo data</button>
-        </>
-      )}
-      {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
-      {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
+      <section className="parents-report-panel" aria-label="Экспорт отчётов">
+        <h3>Отчёты для конкурса</h3>
+        <p className="section-meta">Без персональных данных: только агрегированные KPI.</p>
+        <div className="report-buttons-row">
+          <button type="button" className="report-button" onClick={() => copyText(shortReportText)}>Короткий отчёт</button>
+          <button type="button" className="report-button report-button-emphasis" onClick={() => copyText(competitionReportText)}>Отчёт для конкурса</button>
+          {import.meta.env.DEV && (
+            <>
+              <button type="button" onClick={onLoadDemoData}>Load demo data</button>
+              <button type="button" onClick={onClearDemoData}>Clear demo data</button>
+            </>
+          )}
+        </div>
+        {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
+        {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
+      </section>
 
       <div className="parents-grid">
-        {skillCards.map((skill) => (
-          <article key={skill.id} className="skill-card" data-skill={skill.id}>
-            <h3>{skill.label}: {progress.skills[skill.id] ?? 0}</h3>
-            <p>{skill.meaning}</p>
-            <ul>
-              {skill.recommendations.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
-        ))}
+        {skillCards.map((skill) => {
+          const score = progress.skills[skill.id] ?? 0;
+          const visualPercent = Math.min(100, score * 10);
+
+          return (
+            <article key={skill.id} className="skill-card skill-card-rich" data-skill={skill.id}>
+              <header>
+                <h3>{skill.label}</h3>
+                <p className="skill-score">{score} балл(ов)</p>
+              </header>
+              <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={visualPercent}>
+                <div className="progress-bar" style={{ width: `${visualPercent}%` }} />
+              </div>
+              <p>{skill.meaning}</p>
+              <ul>
+                {skill.recommendations.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+          );
+        })}
       </div>
 
-      <h3>20-minute lesson kits</h3>
+      <section id="recommendations" className="recommendation-card">
+        <h3>Рекомендация на ближайшую неделю</h3>
+        <p>
+          Сфокусируйтесь на навыке <strong>{weakSkillCard.label}</strong>: начните с 1 короткого разбора переписки
+          и закрепите алгоритм действия в безопасном диалоге.
+        </p>
+        <ul>
+          {weakSkillCard.recommendations.slice(0, 2).map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <h3>20-минутные наборы сцен</h3>
       <div className="kits-grid">
         {lessonKits.map((kit) => {
           const isCompleted = progress.completedLessonKitIds.includes(kit.id);
@@ -302,8 +363,8 @@ export function ParentsPage() {
 
           return (
             <article key={kit.id} className="kit-card">
-              <h4>{kit.title} ({kit.sceneIds.length} scenes)</h4>
-              {(isCompleted || isFinishedNow) && <span className="badge">Completed</span>}
+              <h4>{kit.title} ({kit.sceneIds.length} сцен)</h4>
+              {(isCompleted || isFinishedNow) && <span className="badge">Пройдено</span>}
               <button
                 type="button"
                 onClick={() => {
@@ -312,7 +373,7 @@ export function ParentsPage() {
                 }}
                 disabled={!campaign}
               >
-                Start lesson
+                Начать урок
               </button>
             </article>
           );
