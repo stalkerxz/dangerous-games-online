@@ -39,7 +39,7 @@ export function App() {
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) => (isActive ? 'active' : '')}
+              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
             >
               {item.label}
             </NavLink>
@@ -64,7 +64,7 @@ export function App() {
           <NavLink
             key={`mobile-${item.to}`}
             to={item.to}
-            className={({ isActive }) => (isActive ? 'active' : '')}
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
           >
             {item.label}
           </NavLink>
