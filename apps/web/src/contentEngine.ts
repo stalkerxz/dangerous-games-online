@@ -8,6 +8,7 @@ export type PackManifestEntry = {
 
 export type ContentManifest = {
   version: string;
+  content_version?: string;
   packs: PackManifestEntry[];
 };
 
@@ -136,6 +137,8 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?
 const DB_NAME = 'dangerous-games-content';
 const STORE_NAME = 'packs';
 const STORAGE_PREFIX = 'dgo-content:';
+const SYNC_META_KEY = `${STORAGE_PREFIX}sync-meta`;
+const CACHE_NAME_PREFIX = 'dgo-content';
 
 let indexedDbReady = typeof window !== 'undefined' && 'indexedDB' in window;
 
@@ -204,11 +207,73 @@ async function digestSHA256(payload: string): Promise<string> {
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`Request failed: ${url}`);
   }
   return (await response.json()) as T;
+}
+
+type SyncMeta = {
+  manifestVersion: string;
+  campaignVersion: string | null;
+};
+
+function readSyncMeta(): SyncMeta | null {
+  const raw = localStorage.getItem(SYNC_META_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<SyncMeta>;
+    if (!parsed.manifestVersion) {
+      return null;
+    }
+    return {
+      manifestVersion: String(parsed.manifestVersion),
+      campaignVersion: parsed.campaignVersion ? String(parsed.campaignVersion) : null
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeSyncMeta(meta: SyncMeta): void {
+  localStorage.setItem(SYNC_META_KEY, JSON.stringify(meta));
+}
+
+async function clearIndexedDbCache(): Promise<void> {
+  if (!('indexedDB' in window)) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+    deleteRequest.onsuccess = () => resolve();
+    deleteRequest.onerror = () => resolve();
+    deleteRequest.onblocked = () => resolve();
+  });
+
+  indexedDbReady = 'indexedDB' in window;
+}
+
+export async function resetContentCache(): Promise<void> {
+  await clearIndexedDbCache();
+
+  const keysToDelete = Object.keys(localStorage).filter((key) => key.startsWith(STORAGE_PREFIX));
+  for (const key of keysToDelete) {
+    localStorage.removeItem(key);
+  }
+
+  if ('caches' in window) {
+    const cacheKeys = await caches.keys();
+    await Promise.all(cacheKeys.filter((key) => key.startsWith(CACHE_NAME_PREFIX)).map((key) => caches.delete(key)));
+  }
+}
+
+function getManifestVersion(manifest: ContentManifest): string {
+  return manifest.content_version ?? manifest.version;
 }
 
 export async function syncContentPacks(): Promise<{
@@ -217,6 +282,10 @@ export async function syncContentPacks(): Promise<{
   weeklyPacks: WeeklyPack[];
   achievements: AchievementPack | null;
   source: 'network' | 'cache';
+  diagnostics: {
+    manifestVersion: string | null;
+    campaignVersion: string | null;
+  };
 }> {
   const manifestUrl = `${API_BASE_URL}/content/manifest.json`;
   let manifest: ContentManifest | null = null;
@@ -230,25 +299,57 @@ export async function syncContentPacks(): Promise<{
   if (!manifest) {
     const fallback = await readPack('manifest@latest');
     if (!fallback) {
-      return { manifest: null, campaign: null, weeklyPacks: [], achievements: null, source: 'cache' };
+      return {
+        manifest: null,
+        campaign: null,
+        weeklyPacks: [],
+        achievements: null,
+        source: 'cache',
+        diagnostics: { manifestVersion: null, campaignVersion: null }
+      };
     }
     const cachedManifest = fallback.data as ContentManifest;
     const campaign = await loadCampaignFromCache(cachedManifest);
     const weeklyPacks = await loadWeeklyPacksFromCache(cachedManifest);
     const achievements = await loadAchievementsFromCache(cachedManifest);
-    return { manifest: cachedManifest, campaign, weeklyPacks, achievements, source: 'cache' };
+    const campaignPack = cachedManifest.packs.find((pack) => pack.type === 'campaign');
+    return {
+      manifest: cachedManifest,
+      campaign,
+      weeklyPacks,
+      achievements,
+      source: 'cache',
+      diagnostics: {
+        manifestVersion: getManifestVersion(cachedManifest),
+        campaignVersion: campaignPack?.version ?? null
+      }
+    };
   }
 
-  await savePack({ key: 'manifest@latest', hash: manifest.version, data: manifest });
+  const manifestVersion = getManifestVersion(manifest);
+  const campaignPack = manifest.packs.find((pack) => pack.type === 'campaign');
+  const campaignVersion = campaignPack?.version ?? null;
+  const previousMeta = readSyncMeta();
+  const shouldForceRedownload =
+    previousMeta !== null &&
+    (previousMeta.manifestVersion !== manifestVersion || previousMeta.campaignVersion !== campaignVersion);
+
+  if (shouldForceRedownload) {
+    await resetContentCache();
+  }
+
+  await savePack({ key: 'manifest@latest', hash: manifestVersion, data: manifest });
+
+  let downloadedFromNetwork = false;
 
   for (const pack of manifest.packs) {
     const key = toStorageKey(pack);
     const cached = await readPack(key);
-    if (cached && cached.hash === pack.sha256) {
+    if (!shouldForceRedownload && cached && cached.hash === pack.sha256) {
       continue;
     }
 
-    const payloadResponse = await fetch(`${API_BASE_URL}${pack.url}`);
+    const payloadResponse = await fetch(`${API_BASE_URL}${pack.url}`, { cache: 'no-store' });
     if (!payloadResponse.ok) {
       continue;
     }
@@ -260,12 +361,29 @@ export async function syncContentPacks(): Promise<{
     }
 
     await savePack({ key, hash: pack.sha256, data: JSON.parse(payloadText) });
+    downloadedFromNetwork = true;
   }
+
+  writeSyncMeta({ manifestVersion, campaignVersion });
 
   const campaign = await loadCampaignFromCache(manifest);
   const weeklyPacks = await loadWeeklyPacksFromCache(manifest);
   const achievements = await loadAchievementsFromCache(manifest);
-  return { manifest, campaign, weeklyPacks, achievements, source: 'network' };
+  if (!campaignPack || campaign) {
+    return {
+      manifest,
+      campaign,
+      weeklyPacks,
+      achievements,
+      source: downloadedFromNetwork ? 'network' : 'cache',
+      diagnostics: {
+        manifestVersion,
+        campaignVersion
+      }
+    };
+  }
+
+  throw new Error('Campaign pack sync failed. Please retry.');
 }
 
 async function loadCampaignFromCache(manifest: ContentManifest): Promise<CampaignPack | null> {

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useAgeMode, type AgeMode } from '../ageMode';
+import { useContent } from '../contentContext';
 
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
@@ -8,6 +10,18 @@ const options: Array<{ value: AgeMode; label: string; hint: string }> = [
 
 export function SettingsPage() {
   const { ageMode, setAgeMode } = useAgeMode();
+  const { diagnostics, source, loading, error, resetCache, retrySync } = useContent();
+  const [resetStatus, setResetStatus] = useState<string | null>(null);
+
+  const handleResetCache = async () => {
+    setResetStatus('Resetting content cache…');
+    try {
+      await resetCache();
+      setResetStatus('Content cache reset complete.');
+    } catch {
+      setResetStatus('Failed to reset content cache.');
+    }
+  };
 
   return (
     <section>
@@ -26,6 +40,32 @@ export function SettingsPage() {
           <strong>{option.label}</strong> — {option.hint}
         </label>
       ))}
+
+      <h3>Content</h3>
+      <button type="button" onClick={() => void handleResetCache()} disabled={loading}>
+        Reset content cache
+      </button>
+      {resetStatus && <p>{resetStatus}</p>}
+
+      {error && (
+        <p>
+          Sync failed: {error}{' '}
+          <button type="button" onClick={() => void retrySync()} disabled={loading}>
+            Retry
+          </button>
+        </p>
+      )}
+
+      {import.meta.env.DEV && (
+        <>
+          <h3>Content diagnostics (dev only)</h3>
+          <ul>
+            <li>Manifest version: {diagnostics.manifestVersion ?? 'unknown'}</li>
+            <li>Campaign pack version: {diagnostics.campaignVersion ?? 'unknown'}</li>
+            <li>Pack source: {source === 'network' ? 'network' : 'cache'}</li>
+          </ul>
+        </>
+      )}
     </section>
   );
 }

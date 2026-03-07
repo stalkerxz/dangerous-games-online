@@ -10,7 +10,7 @@ function isBetweenInclusive(today: string, start: string, end: string) {
 }
 
 export function WeeklyPage() {
-  const { weeklyPacks, achievements, loading } = useContent();
+  const { weeklyPacks, achievements, loading, error, retrySync } = useContent();
   const { ageMode } = useAgeMode();
   const [progress, setProgress] = useState(() => readPlayerProgress());
   const today = new Date().toISOString().slice(0, 10);
@@ -79,6 +79,14 @@ export function WeeklyPage() {
       )}
 
       <h3>Archive</h3>
+
+      {error && (
+        <p>
+          Weekly sync failed: {error}{' '}
+          <button type="button" onClick={() => void retrySync()} disabled={loading}>Retry</button>
+        </p>
+      )}
+
       {loading && <p>Loading weekly archive…</p>}
       {!loading && sortedWeekly.length === 0 && <p>No downloaded weekly packs yet.</p>}
       {!loading && sortedWeekly.length > 0 && (

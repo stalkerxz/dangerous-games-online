@@ -35,7 +35,7 @@ function topRiskyTags(metrics: ChapterKpiMetrics | undefined): string[] {
 }
 
 export function CampaignPage() {
-  const { campaign, achievements, loading, error, source } = useContent();
+  const { campaign, achievements, loading, error, source, retrySync } = useContent();
   const { ageMode } = useAgeMode();
   const [campaignProgress, setCampaignProgress] = useState<CampaignProgress>(() => readCampaignProgress());
   const [kpiProgress, setKpiProgress] = useState<CampaignKpiProgress>(() => readCampaignKpiProgress());
@@ -91,7 +91,14 @@ export function CampaignPage() {
   }
 
   if (error || !campaign) {
-    return <section><h2>Campaign</h2><p>Campaign unavailable offline. Connect once to cache packs.</p></section>;
+    return (
+      <section>
+        <h2>Campaign</h2>
+        <p>Campaign unavailable offline. Connect once to cache packs.</p>
+        {error && <p>{error}</p>}
+        <button type="button" onClick={() => void retrySync()}>Retry sync</button>
+      </section>
+    );
   }
 
   const openChapter = (chapter: CampaignChapter) => {
