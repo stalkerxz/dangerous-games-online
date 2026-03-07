@@ -152,7 +152,7 @@ export function CampaignPage() {
     return (
       <section>
         <h2>{campaign.title}</h2>
-        <p>Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
+        <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
         <button type="button" onClick={() => setActiveFlow(null)}>← Back to city map</button>
         <ScenePlayer
           title={activeFlow.title}
@@ -206,7 +206,7 @@ export function CampaignPage() {
   return (
     <section>
       <h2>{campaign.title}</h2>
-      <p>Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
+      <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
       <h3>City map</h3>
       <div className="campaign-map">
         {chapters.map((chapter) => {
@@ -221,6 +221,14 @@ export function CampaignPage() {
             <article key={chapter.id} className="chapter-card">
               <h4>{chapter.title}</h4>
               <p>Progress: {completedScenes}/{totalScenes} ({percent}%)</p>
+              <div className="progress" aria-hidden="true">
+                <div className="progress-bar" style={{ width: `${percent}%` }} />
+              </div>
+              <p>
+                <span className={`status-pill ${chapterFinalDone ? 'safe' : chapterFinalUnlocked ? 'neutral' : 'risky'}`}>
+                  {chapterFinalDone ? 'Final complete' : chapterFinalUnlocked ? 'Final unlocked' : 'Finish scenes to unlock final'}
+                </span>
+              </p>
               <div className="chapter-actions">
                 <button type="button" onClick={() => openChapter(chapter)}>
                   {isStarted ? 'Continue' : 'Start chapter'}

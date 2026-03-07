@@ -257,7 +257,7 @@ export function ParentsPage() {
   return (
     <section>
       <h2>Parents / Teachers dashboard</h2>
-      <p>Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
+      <p className="section-meta">Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
 
       <h3>Overall KPI summary</h3>
       <p>Scenes completed: {campaignKpi?.overall.scenes_completed_count ?? 0}</p>
@@ -282,7 +282,7 @@ export function ParentsPage() {
 
       <div className="parents-grid">
         {skillCards.map((skill) => (
-          <article key={skill.id} className="skill-card">
+          <article key={skill.id} className="skill-card" data-skill={skill.id}>
             <h3>{skill.label}: {progress.skills[skill.id] ?? 0}</h3>
             <p>{skill.meaning}</p>
             <ul>

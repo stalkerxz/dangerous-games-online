@@ -328,7 +328,17 @@ export function ScenePlayer({
   return (
     <article className="scene-card">
       <h3 className="scene-title">{title}</h3>
-      {showSceneProgress && <p className="scene-progress">Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>}
+      {showSceneProgress && (
+        <>
+          <p className="scene-progress">Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>
+          <div className="progress" aria-hidden="true">
+            <div
+              className="progress-bar"
+              style={{ width: `${Math.round((Math.min(sceneIndex + 1, scenes.length) / Math.max(1, scenes.length)) * 100)}%` }}
+            />
+          </div>
+        </>
+      )}
       <ul aria-live="polite" aria-relevant="additions text" className="chat-log" ref={chatListRef}>
         {scene.chat.slice(0, visibleChatCount).map((line, index) => {
           const resolvedAttachmentSrc = line.attachment?.type === 'image' ? resolveAttachmentSrc(line.attachment.src) : undefined;
@@ -360,7 +370,12 @@ export function ScenePlayer({
 
       <div className="choices">
         {scene.choices.map((choice) => (
-          <button className="choice-button" key={choice.id} type="button" onClick={() => onChoose(choice.id)}>
+          <button
+            className={`choice-button choice-${classifyRisk(choice)}`}
+            key={choice.id}
+            type="button"
+            onClick={() => onChoose(choice.id)}
+          >
             {choice.label}
           </button>
         ))}

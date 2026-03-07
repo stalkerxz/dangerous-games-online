@@ -31,7 +31,7 @@ export function SettingsPage() {
       <h3>Age mode</h3>
       <p>Choose how scene text is shown in campaign and weekly missions.</p>
       {options.map((option) => (
-        <label key={option.value} style={{ display: 'block', marginBottom: 12 }}>
+        <label key={option.value} className="form-option">
           <input
             type="radio"
             name="age-mode"
