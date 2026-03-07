@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type CSSProperties, useMemo, useState } from 'react';
 import { useContent } from '../contentContext';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
@@ -32,6 +32,27 @@ function topRiskyTags(metrics: ChapterKpiMetrics | undefined): string[] {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([tag]) => tag);
+}
+
+const CHAPTER_CARD_THEMES = [
+  { icon: '🌆', accent: '#4f46e5' },
+  { icon: '🛰️', accent: '#0ea5e9' },
+  { icon: '🧩', accent: '#f59e0b' },
+  { icon: '🛡️', accent: '#10b981' },
+  { icon: '🚨', accent: '#ef4444' }
+];
+
+function chapterDescription(chapter: CampaignChapter): string {
+  const words = chapter.title
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 5)
+    .join(' ');
+
+  return words
+    ? `Разберись с рисками в теме «${words}» и подготовься к финальному кейсу.`
+    : 'Тренируйся на сценах, чтобы уверенно дойти до финального кейса.';
 }
 
 export function CampaignPage() {
@@ -181,7 +202,7 @@ export function CampaignPage() {
     const recommendations = [...riskyTags, 'review_quiz_accuracy', 'review_safe_choices'].slice(0, 3);
 
     return (
-      <section>
+      <section className="campaign-page">
         <h2>Chapter Summary: {summaryChapter.title}</h2>
         <p>Scenes completed: {summaryMetrics.scenes_completed_count}</p>
         <p>Choices: safe {summaryMetrics.safe_choices_count} / risky {summaryMetrics.risky_choices_count}</p>
@@ -204,37 +225,67 @@ export function CampaignPage() {
   }
 
   return (
-    <section>
-      <h2>{campaign.title}</h2>
-      <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
-      <h3>City map</h3>
+    <section className="campaign-page">
+      <header className="campaign-hero">
+        <p className="campaign-hero-kicker">Campaign</p>
+        <h2>{campaign.title}</h2>
+        <p className="campaign-hero-subtitle">
+          Пройди «город рисков»: от быстрых диалогов до финальных кейсов с разбором и квизом.
+        </p>
+        <div className="campaign-hero-actions">
+          <button
+            type="button"
+            onClick={() => {
+              const nextChapter = chapters.find((chapter) => {
+                const totalScenes = chapter.scene_ids.length;
+                const completedScenes = chapter.scene_ids.filter((sceneId) => modeProgress.completedScenes[sceneId]).length;
+                return completedScenes < totalScenes || !modeProgress.completedFinals[chapter.id];
+              });
+              if (nextChapter) {
+                openChapter(nextChapter);
+              }
+            }}
+          >
+            Continue
+          </button>
+          <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
+        </div>
+      </header>
+
+      <h3 className="campaign-map-title">City of risks</h3>
       <div className="campaign-map">
-        {chapters.map((chapter) => {
+        {chapters.map((chapter, index) => {
           const totalScenes = chapter.scene_ids.length;
           const completedScenes = chapter.scene_ids.filter((sceneId) => modeProgress.completedScenes[sceneId]).length;
           const percent = totalScenes > 0 ? Math.round((completedScenes / totalScenes) * 100) : 0;
           const chapterFinalUnlocked = totalScenes > 0 && completedScenes >= totalScenes;
           const chapterFinalDone = Boolean(modeProgress.completedFinals[chapter.id]);
           const isStarted = completedScenes > 0;
+          const theme = CHAPTER_CARD_THEMES[index % CHAPTER_CARD_THEMES.length];
+          const actionLabel = chapterFinalUnlocked ? (chapterFinalDone ? 'Final case ✅' : 'Final case') : isStarted ? 'Continue' : 'Start';
+          const action = chapterFinalUnlocked ? () => openFinal(chapter) : () => openChapter(chapter);
 
           return (
-            <article key={chapter.id} className="chapter-card">
-              <h4>{chapter.title}</h4>
-              <p>Progress: {completedScenes}/{totalScenes} ({percent}%)</p>
+            <article key={chapter.id} className="chapter-card city-card" style={{ '--chapter-accent': theme.accent } as CSSProperties}>
+              <div className="chapter-card-head">
+                <p className="chapter-icon" aria-hidden="true">{theme.icon}</p>
+                <div>
+                  <h4>{chapter.title}</h4>
+                  <p className="chapter-description">{chapterDescription(chapter)}</p>
+                </div>
+              </div>
+              <p className="chapter-progress-label">Progress: {completedScenes}/{totalScenes} ({percent}%)</p>
               <div className="progress" aria-hidden="true">
                 <div className="progress-bar" style={{ width: `${percent}%` }} />
               </div>
-              <p>
+              <p className="chapter-status-row">
                 <span className={`status-pill ${chapterFinalDone ? 'safe' : chapterFinalUnlocked ? 'neutral' : 'risky'}`}>
                   {chapterFinalDone ? 'Final complete' : chapterFinalUnlocked ? 'Final unlocked' : 'Finish scenes to unlock final'}
                 </span>
               </p>
-              <div className="chapter-actions">
-                <button type="button" onClick={() => openChapter(chapter)}>
-                  {isStarted ? 'Continue' : 'Start chapter'}
-                </button>
-                <button type="button" onClick={() => openFinal(chapter)} disabled={!chapterFinalUnlocked}>
-                  Final case{chapterFinalDone ? ' ✅' : ''}
+              <div className="chapter-actions chapter-actions-single">
+                <button type="button" onClick={action}>
+                  {actionLabel}
                 </button>
               </div>
             </article>

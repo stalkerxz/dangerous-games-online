@@ -98,6 +98,17 @@ function renderHighlightedText(text: string, terms: string[]): ReactNode {
   });
 }
 
+function classifySpeaker(speaker: string): 'player' | 'system' | 'other' {
+  const normalized = speaker.toLocaleLowerCase('ru-RU');
+  if (normalized.includes('ты') || normalized.includes('игрок')) {
+    return 'player';
+  }
+  if (normalized.includes('бот') || normalized.includes('админ') || normalized.includes('support') || normalized.includes('саппорт')) {
+    return 'system';
+  }
+  return 'other';
+}
+
 export function ScenePlayer({
   title,
   scenes,
@@ -342,10 +353,12 @@ export function ScenePlayer({
       <ul aria-live="polite" aria-relevant="additions text" className="chat-log" ref={chatListRef}>
         {scene.chat.slice(0, visibleChatCount).map((line, index) => {
           const resolvedAttachmentSrc = line.attachment?.type === 'image' ? resolveAttachmentSrc(line.attachment.src) : undefined;
+          const senderType = classifySpeaker(line.speaker);
           return (
-            <li key={`${line.speaker}-${index}`}>
-              <p className="chat-bubble">
-                <strong>{line.speaker}:</strong> {renderHighlightedText(line.text, highlightTerms)}
+            <li className={`chat-row chat-row-${senderType}`} key={`${line.speaker}-${index}`}>
+              <p className={`chat-bubble chat-bubble-${senderType}`}>
+                <span className="chat-speaker">{line.speaker}</span>
+                <span>{renderHighlightedText(line.text, highlightTerms)}</span>
               </p>
               {line.attachment && (
                 <div aria-label={`Attachment: ${line.attachment.label}`} className="attachment-card" role="group">
@@ -362,7 +375,8 @@ export function ScenePlayer({
         {typingMessage && (
           <li className="typing-row" key={`${typingMessage.speaker}-typing`}>
             <p aria-label={`${typingMessage.speaker} is typing`} className="typing-bubble" role="status">
-              <strong>{typingMessage.speaker}:</strong> печатает<span aria-hidden="true">…</span>
+              <span className="chat-speaker">{typingMessage.speaker}</span>
+              <span>печатает<span aria-hidden="true">…</span></span>
             </p>
           </li>
         )}
@@ -382,11 +396,21 @@ export function ScenePlayer({
       </div>
 
       {selectedChoice && (
-        <div className="debrief">
-          <h4>Debrief</h4>
-          <p>{selectedChoice.debrief}</p>
+        <div className="debrief-layout">
+          <section className="debrief" aria-label="Debrief">
+            <h4>Debrief</h4>
+            <p>{selectedChoice.debrief}</p>
+            <div className="chip-row" role="list" aria-label="Scene clues and risk status">
+              {(scene.tags ?? []).slice(0, 4).map((tag) => (
+                <span className="clue-chip" key={tag} role="listitem">#{tag}</span>
+              ))}
+              <span className={`status-pill ${classifyRisk(selectedChoice)}`} role="listitem">
+                {classifyRisk(selectedChoice)} choice
+              </span>
+            </div>
+          </section>
 
-          <div className="quiz-card">
+          <section className="quiz-card" aria-label="Quiz">
             <h5>Quiz</h5>
             <p>{selectedChoice.quiz.question}</p>
             <ol className="quiz-options">
@@ -402,7 +426,7 @@ export function ScenePlayer({
             <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null}>
               {sceneIndex < scenes.length - 1 ? 'Next scene' : isCompleted ? 'Completed' : 'Finish mission'}
             </button>
-          </div>
+          </section>
         </div>
       )}
       {footer}
