@@ -352,3 +352,96 @@ main {
 .clue-card p {
   margin: 0 0 0.5rem;
 }
+
+.onboarding-layout {
+  min-height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.onboarding-layout main {
+  width: 100%;
+}
+
+.onboarding {
+  display: flex;
+  justify-content: center;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 640px;
+  display: grid;
+  gap: 1rem;
+}
+
+.onboarding-progress {
+  margin: 0;
+  color: #475569;
+  font-weight: 600;
+}
+
+.onboarding-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.onboarding-age-options {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.onboarding-age-options legend {
+  font-weight: 600;
+  padding: 0 0.35rem;
+}
+
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.onboarding-actions button {
+  min-height: 44px;
+  border-radius: 0.6rem;
+  border: 1px solid #2563eb;
+  background: #eff6ff;
+  color: #1e3a8a;
+  padding: 0.55rem 0.95rem;
+}
+
+.onboarding-actions button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.onboarding-actions .onboarding-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .onboarding-layout {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .onboarding-card {
+    gap: 0.9rem;
+  }
+
+  .onboarding-actions {
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+    padding-top: 0.75rem;
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
+  }
+}

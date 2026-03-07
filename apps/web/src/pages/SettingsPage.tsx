@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAgeMode, type AgeMode } from '../ageMode';
 import { useContent } from '../contentContext';
+import { useOnboarding } from '../onboarding';
 
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
@@ -11,6 +12,7 @@ const options: Array<{ value: AgeMode; label: string; hint: string }> = [
 export function SettingsPage() {
   const { ageMode, setAgeMode } = useAgeMode();
   const { diagnostics, source, loading, error, resetCache, retrySync } = useContent();
+  const { restartOnboarding } = useOnboarding();
   const [resetStatus, setResetStatus] = useState<string | null>(null);
 
   const handleResetCache = async () => {
@@ -40,6 +42,13 @@ export function SettingsPage() {
           <strong>{option.label}</strong> — {option.hint}
         </label>
       ))}
+
+
+      <h3>Онбординг</h3>
+      <p>Нужно повторить вводный квест? Запусти онбординг заново.</p>
+      <button type="button" onClick={restartOnboarding}>
+        Пройти онбординг снова
+      </button>
 
       <h3>Content</h3>
       <button type="button" onClick={() => void handleResetCache()} disabled={loading}>
