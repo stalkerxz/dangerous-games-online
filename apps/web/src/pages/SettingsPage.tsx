@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAgeMode, type AgeMode } from '../ageMode';
 import { useContent } from '../contentContext';
 import { useOnboarding } from '../onboarding';
+import { disableDemoMode, enableDemoMode, isDemoModeEnabled, resetDemoData } from '../demoMode';
+import { clearDemoRoute, startDemoRoute } from '../demoRoute';
 
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
@@ -10,10 +13,12 @@ const options: Array<{ value: AgeMode; label: string; hint: string }> = [
 ];
 
 export function SettingsPage() {
+  const navigate = useNavigate();
   const { ageMode, setAgeMode } = useAgeMode();
-  const { diagnostics, source, loading, error, resetCache, retrySync } = useContent();
+  const { diagnostics, source, loading, error, achievements, resetCache, retrySync } = useContent();
   const { restartOnboarding } = useOnboarding();
   const [resetStatus, setResetStatus] = useState<string | null>(null);
+  const [demoModeEnabled, setDemoModeEnabled] = useState(() => isDemoModeEnabled());
 
   const handleResetCache = async () => {
     setResetStatus('Resetting content cache…');
@@ -23,6 +28,34 @@ export function SettingsPage() {
     } catch {
       setResetStatus('Failed to reset content cache.');
     }
+  };
+
+  const handleToggleDemoMode = () => {
+    if (!demoModeEnabled) {
+      const achievementIds = (achievements?.items ?? []).slice(0, 3).map((item) => item.id);
+      enableDemoMode(ageMode, achievementIds);
+      setDemoModeEnabled(true);
+      return;
+    }
+
+    disableDemoMode();
+    clearDemoRoute();
+    setDemoModeEnabled(false);
+  };
+
+  const handleStartDemoRoute = () => {
+    startDemoRoute();
+    navigate('/campaign');
+  };
+
+  const handleResetDemoData = () => {
+    const shouldDropAll = window.confirm(
+      'Удалить весь локальный прогресс без восстановления? Нажмите OK для полного сброса. Cancel вернет обычный режим с восстановлением из бэкапа.'
+    );
+
+    resetDemoData({ dropAllProgress: shouldDropAll });
+    clearDemoRoute();
+    setDemoModeEnabled(false);
   };
 
   return (
@@ -43,6 +76,19 @@ export function SettingsPage() {
         </label>
       ))}
 
+      <h3>Demo mode / Jury mode</h3>
+      <p>Быстрый режим презентации: заполнит демо-прогресс, улики, достижения и KPI без ручной подготовки.</p>
+      <button type="button" onClick={handleToggleDemoMode}>
+        {demoModeEnabled ? 'Disable demo mode' : 'Enable demo mode'}
+      </button>
+      <div className="report-buttons-row">
+        <button type="button" onClick={handleStartDemoRoute} disabled={!demoModeEnabled}>
+          Start demo route
+        </button>
+        <button type="button" onClick={handleResetDemoData}>
+          Reset demo data
+        </button>
+      </div>
 
       <h3>Онбординг</h3>
       <p>Нужно повторить вводный квест? Запусти онбординг заново.</p>

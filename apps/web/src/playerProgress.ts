@@ -345,13 +345,26 @@ export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgr
     }
   };
 
+  const campaignProgress: CampaignProgress = {
+    [mode]: {
+      completedScenes: {
+        'chats-sms-code': { safe: true },
+        'chats-geolocation': { safe: true },
+        'chats-prize-link': { safe: false }
+      },
+      completedFinals: {
+        chats: false
+      }
+    }
+  };
+
   const chapterMetrics: ChapterKpiMetrics = {
     scenes_completed_count: 9,
     safe_choices_count: 6,
     risky_choices_count: 3,
     quiz_correct_count: 7,
     quiz_total_count: 9,
-    chapter_final_completed: true,
+    chapter_final_completed: false,
     risky_tags: {
       privacy: 1,
       communication: 1,
@@ -382,6 +395,7 @@ export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgr
   };
 
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(playerProgress));
+  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(campaignProgress));
   localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(campaignKpi));
 
   return { playerProgress, campaignKpi };

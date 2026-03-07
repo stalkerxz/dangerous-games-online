@@ -1,4 +1,5 @@
 import { type CSSProperties, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useContent } from '../contentContext';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
@@ -17,6 +18,8 @@ import {
   type RiskLevel
 } from '../playerProgress';
 import type { CampaignChapter, StoryScene } from '../contentEngine';
+import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
+import { isDemoModeEnabled } from '../demoMode';
 
 type ActiveFlow =
   | { kind: 'chapter'; chapter: CampaignChapter; scenes: StoryScene[]; title: string }
@@ -56,12 +59,16 @@ function chapterDescription(chapter: CampaignChapter): string {
 }
 
 export function CampaignPage() {
+  const navigate = useNavigate();
   const { campaign, achievements, loading, error, source, retrySync } = useContent();
   const { ageMode } = useAgeMode();
   const [campaignProgress, setCampaignProgress] = useState<CampaignProgress>(() => readCampaignProgress());
   const [kpiProgress, setKpiProgress] = useState<CampaignKpiProgress>(() => readCampaignKpiProgress());
   const [activeFlow, setActiveFlow] = useState<ActiveFlow | null>(null);
   const [summaryChapterId, setSummaryChapterId] = useState<string | null>(null);
+
+  const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
+  const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
 
   const modeProgress = campaignProgress[ageMode] ?? { completedScenes: {}, completedFinals: {} };
   const modeKpi = kpiProgress[ageMode];
@@ -144,6 +151,21 @@ export function CampaignPage() {
     setActiveFlow({ kind: 'final', chapter, scenes: [finalScene], title: `${chapter.title}: Final case` });
   };
 
+  const openDemoMessengerScene = () => {
+    const scene = campaign.scenes.find((item) => item.id === 'chats-evidence-trade');
+    if (!scene) {
+      return;
+    }
+
+    const chapter = chapters.find((item) => item.scene_ids.includes(scene.id));
+    if (!chapter) {
+      return;
+    }
+
+    setSummaryChapterId(null);
+    setActiveFlow({ kind: 'chapter', chapter, scenes: [scene], title: 'Demo messenger scene' });
+  };
+
   const openRepeatWeakSkill = (chapter: CampaignChapter) => {
     const chapterMetrics = modeKpi?.chapters[chapter.id];
     const preferredTags = topRiskyTags(chapterMetrics);
@@ -188,6 +210,12 @@ export function CampaignPage() {
               const kpi = markChapterFinalKpiCompleted(ageMode, activeFlow.chapter.id);
               setKpiProgress(kpi);
               setSummaryChapterId(activeFlow.chapter.id);
+            }
+            if (demoRouteActive && demoRouteStep === 'messenger') {
+              updateDemoRouteStep('clues');
+              setDemoRouteStep('clues');
+              navigate('/clues');
+              return;
             }
             setActiveFlow(null);
           }}
@@ -248,9 +276,46 @@ export function CampaignPage() {
           >
             Continue
           </button>
+          {isDemoModeEnabled() && (
+            <button
+              type="button"
+              onClick={() => {
+                updateDemoRouteStep('campaign');
+                setDemoRouteStep('campaign');
+              }}
+            >
+              Start demo route
+            </button>
+          )}
           <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
         </div>
       </header>
+
+      {demoRouteActive && (
+        <section className="parents-report-panel" aria-label="Demo route guidance">
+          <h3>Demo route</h3>
+          {demoRouteStep === 'campaign' && (
+            <>
+              <p className="section-meta">Step 1/5: Покажите campaign hero и карту города рисков.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  updateDemoRouteStep('messenger');
+                  setDemoRouteStep('messenger');
+                }}
+              >
+                Next: messenger scene
+              </button>
+            </>
+          )}
+          {demoRouteStep === 'messenger' && (
+            <>
+              <p className="section-meta">Step 2/5: Запустите один чат со сценой и вложением.</p>
+              <button type="button" onClick={openDemoMessengerScene}>Play messenger demo scene</button>
+            </>
+          )}
+        </section>
+      )}
 
       <h3 className="campaign-map-title">City of risks</h3>
       <div className="campaign-map">
