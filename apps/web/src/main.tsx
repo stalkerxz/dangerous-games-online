@@ -5,6 +5,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
 import { AgeModeProvider } from './ageMode';
 import { ContentProvider } from './contentContext';
+import { OnboardingProvider } from './onboarding';
 import './styles.css';
 
 registerSW({ immediate: true });
@@ -19,9 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Router>
       <AgeModeProvider>
-        <ContentProvider>
-          <App />
-        </ContentProvider>
+        <OnboardingProvider>
+          <ContentProvider>
+            <App />
+          </ContentProvider>
+        </OnboardingProvider>
       </AgeModeProvider>
     </Router>
   </React.StrictMode>

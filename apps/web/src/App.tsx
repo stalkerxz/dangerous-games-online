@@ -5,6 +5,8 @@ import { ParentsPage } from './pages/ParentsPage';
 import { WeeklyPage } from './pages/WeeklyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CluesPage } from './pages/CluesPage';
+import { OnboardingPage } from './pages/OnboardingPage';
+import { useOnboarding } from './onboarding';
 
 const navItems = [
   { to: '/campaign', label: 'Campaign' },
@@ -16,6 +18,18 @@ const navItems = [
 ];
 
 export function App() {
+  const { hasCompletedOnboarding } = useOnboarding();
+
+  if (!hasCompletedOnboarding) {
+    return (
+      <div className="layout onboarding-layout">
+        <main>
+          <OnboardingPage />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="layout">
       <header className="site-header">
