@@ -78,14 +78,14 @@ export function SettingsPage() {
         </label>
       ))}
 
-      <h3>Демо-режим для жюри</h3>
-      <p>Заполняет демо-прогресс, улики, достижения и KPI для быстрой презентации проекта.</p>
+      <h3>Демо-режим для школы и жюри</h3>
+      <p>Заполняет демо-прогресс, улики, достижения и KPI для быстрой презентации на педсовете, классном часе и конкурсе.</p>
       <button type="button" onClick={handleToggleDemoMode}>
         {demoModeEnabled ? 'Выключить демо-режим' : 'Включить демо-режим'}
       </button>
       <div className="report-buttons-row">
         <button type="button" onClick={handleStartDemoRoute} disabled={!demoModeEnabled}>
-          Запустить демо-маршрут
+          Запустить школьный демо-маршрут
         </button>
         <button type="button" onClick={handleResetDemoData}>
           Сбросить демо-данные

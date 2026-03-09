@@ -110,7 +110,7 @@ export function CluesPage() {
       {demoRouteActive && demoRouteStep === 'clues' && (
         <section className="parents-report-panel" aria-label="Маршрут демо-показа">
           <h3>Маршрут демонстрации</h3>
-          <p className="section-meta">Шаг 3/5: Покажите собранные сигналы риска и объясните, как измеряется цифровая грамотность.</p>
+          <p className="section-meta">Шаг 3/5: Покажите, какие сигналы риска класс уже распознаёт, и подчеркните измеримый прогресс цифровой грамотности.</p>
           <button
             type="button"
             onClick={() => {
