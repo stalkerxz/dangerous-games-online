@@ -400,6 +400,7 @@ export function ScenePlayer({
           <section className="debrief" aria-label="Разбор решения">
             <h4>Разбор решения</h4>
             <p>{selectedChoice.debrief}</p>
+            <p className="section-meta">Что тренируем: замечать риск, выбирать безопасное действие и понимать, как обсудить ситуацию с взрослым дома или в школе.</p>
             <div className="chip-row" role="list" aria-label="Улики сцены и оценка решения">
               {(scene.tags ?? []).slice(0, 4).map((tag) => (
                 <span className="clue-chip" key={tag} role="listitem">#{tag}</span>
@@ -412,6 +413,7 @@ export function ScenePlayer({
 
           <section className="quiz-card" aria-label="Проверка понимания">
             <h5>Проверка понимания</h5>
+            <p className="section-meta">Это учебная и профилактическая проверка: видно, как закрепляется безопасное поведение.</p>
             <p>{selectedChoice.quiz.question}</p>
             <ol className="quiz-options">
               {selectedChoice.quiz.options.map((option, index) => (
