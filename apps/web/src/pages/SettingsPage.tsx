@@ -10,7 +10,7 @@ import { usePresentationMode } from '../presentationMode';
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
   { value: '11-14', label: '11-14', hint: 'Более подробные формулировки и контекст.' },
-  { value: 'all', label: 'All — Полный чат (демо)', hint: 'Показывает полный чат со всеми эффектами (delay, вложения).' }
+  { value: 'all', label: 'Полный режим (демо)', hint: 'Показывает полный сценарий со всеми эффектами, включая задержки и вложения.' }
 ];
 
 export function SettingsPage() {
@@ -103,7 +103,7 @@ export function SettingsPage() {
           checked={presentationMode}
           onChange={(event) => setPresentationMode(event.target.checked)}
         />{' '}
-        Включить Presentation mode
+        Включить режим презентации
       </label>
 
       <h3>Онбординг</h3>
@@ -131,9 +131,9 @@ export function SettingsPage() {
         <>
           <h3>Диагностика контента (только dev)</h3>
           <ul>
-            <li>Версия manifest: {diagnostics.manifestVersion ?? 'unknown'}</li>
-            <li>Версия campaign-пака: {diagnostics.campaignVersion ?? 'unknown'}</li>
-            <li>Источник пакетов: {source === 'network' ? 'network' : 'cache'}</li>
+            <li>Версия манифеста: {diagnostics.manifestVersion ?? 'нет данных'}</li>
+            <li>Версия campaign-пака: {diagnostics.campaignVersion ?? 'нет данных'}</li>
+            <li>Источник пакетов: {source === 'network' ? 'онлайн' : 'локальный кэш'}</li>
           </ul>
         </>
       )}

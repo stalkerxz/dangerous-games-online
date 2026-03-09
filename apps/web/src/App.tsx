@@ -35,8 +35,8 @@ export function App() {
   return (
     <div className={`layout${presentationMode ? ' layout-presentation' : ''}`}>
       <header className="site-header">
-        <h1>Dangerous Games Online</h1>
-        <nav className="desktop-nav" aria-label="Primary">
+        <h1>КиберДружина: безопасная школа онлайн</h1>
+        <nav className="desktop-nav" aria-label="Основная навигация">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -61,7 +61,7 @@ export function App() {
         </Routes>
       </main>
 
-      <nav className="mobile-tab-bar" aria-label="Mobile tabs">
+      <nav className="mobile-tab-bar" aria-label="Вкладки на телефоне">
         {navItems.map((item) => (
           <NavLink
             key={`mobile-${item.to}`}

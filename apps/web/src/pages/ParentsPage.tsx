@@ -170,13 +170,13 @@ export function ParentsPage() {
 
   const shortReportText = useMemo(() => {
     const lines = [
-      'Parents KPI short report (no personal data)',
-      `Age mode: ${ageMode}`,
-      `Scenes completed: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
-      `Safe choices: ${safeChoices} | Risky choices: ${riskyChoices}${safePercent === null ? '' : ` | Safe rate: ${safePercent}%`}`,
-      `Quiz correctness: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
-      `Final completed: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}`,
-      `Strongest/weakest: ${skillRanking.strongest} / ${skillRanking.weakest}`
+      'Краткий педагогический отчёт (без персональных данных)',
+      `Возрастной режим: ${ageMode}`,
+      `Пройдено сцен: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
+      `Безопасных решений: ${safeChoices} | Рискованных решений: ${riskyChoices}${safePercent === null ? '' : ` | Доля безопасных: ${safePercent}%`}`,
+      `Верные ответы в проверке: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
+      `Финальный кейс завершён: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Да' : 'Нет'}`,
+      `Сильная сторона / зона роста: ${skillRanking.strongest} / ${skillRanking.weakest}`
     ];
 
     return lines.join('\n');
@@ -184,17 +184,17 @@ export function ParentsPage() {
 
   const competitionReportText = useMemo(() => {
     const lines = [
-      'Competition KPI report (offline, no personal data)',
-      `Age mode: ${ageMode}`,
-      `Scenes completed: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
-      `Safe choices: ${safeChoices}`,
-      `Risky choices: ${riskyChoices}`,
-      `Quiz correctness: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
-      `Final chapter completed: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Yes' : 'No'}`,
-      `Achievements unlocked: ${unlockedAchievementsCount}`,
-      `Lesson kits completed: ${progress.completedLessonKitIds.length}/${lessonKits.length}`,
-      `Strongest skill: ${skillRanking.strongest}`,
-      `Weakest skill: ${skillRanking.weakest}`
+      'Конкурсный отчёт об образовательном эффекте (офлайн, без персональных данных)',
+      `Возрастной режим: ${ageMode}`,
+      `Пройдено сцен: ${campaignKpi?.overall.scenes_completed_count ?? 0}`,
+      `Безопасных решений: ${safeChoices}`,
+      `Рискованных решений: ${riskyChoices}`,
+      `Верные ответы в проверке: ${campaignKpi?.overall.quiz_correct_count ?? 0}/${campaignKpi?.overall.quiz_total_count ?? 0}`,
+      `Финальные кейсы завершены: ${(campaignKpi?.overall.chapter_final_completed ?? false) ? 'Да' : 'Нет'}`,
+      `Открыто достижений: ${unlockedAchievementsCount}`,
+      `Завершено мини-уроков: ${progress.completedLessonKitIds.length}/${lessonKits.length}`,
+      `Самый устойчивый навык: ${skillRanking.strongest}`,
+      `Навык для усиления: ${skillRanking.weakest}`
     ];
 
     return lines.join('\n');
@@ -245,7 +245,7 @@ export function ParentsPage() {
             setLessonJustCompleted(false);
           }}
         >
-          Вернуться к дашборду
+          Вернуться к панели
         </button>
       </section>
     );
@@ -269,8 +269,8 @@ export function ParentsPage() {
     <section className="parents-page">
       <header className="page-hero page-hero-parents">
         <p className="page-hero-kicker">Поддержка семьи</p>
-        <h2>Панель для родителей и наставников</h2>
-        <p className="section-meta">Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
+        <h2>Панель для родителей и педагогов</h2>
+        <p className="section-meta">Краткий образовательный отчёт: какие навыки формируются, как измеряется прогресс и какие мини-уроки можно провести дома или на классном часе.</p>
       </header>
 
 
@@ -279,7 +279,7 @@ export function ParentsPage() {
         <section className="empty-state" aria-label="Пустое состояние parents">
           <div className="empty-art" aria-hidden>👨‍👩‍👧‍👦</div>
           <h3>Данных пока недостаточно</h3>
-          <p>Пройдите 1–2 сцены кампании, чтобы получить персональные рекомендации и видимый KPI-прогресс.</p>
+          <p>Пройдите 1–2 сцены кампании, чтобы получить понятные рекомендации и видимый учебный прогресс.</p>
         </section>
       )}
 
@@ -308,16 +308,16 @@ export function ParentsPage() {
           className="recommendation-cta"
           onClick={() => document.getElementById('recommendations')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
         >
-          Смотреть рекомендацию
+          Открыть рекомендацию
         </button>
       </article>
 
       {demoRouteActive && (demoRouteStep === 'parents' || demoRouteStep === 'report') && (
-        <section className="parents-report-panel" aria-label="Demo route guidance">
-          <h3>Demo route</h3>
+        <section className="parents-report-panel" aria-label="Маршрут демо-показа">
+          <h3>Маршрут демонстрации</h3>
           {demoRouteStep === 'parents' && (
             <>
-              <p className="section-meta">Step 4/5: Покажите KPI и рекомендации для родителей.</p>
+              <p className="section-meta">Шаг 4/5: Покажите образовательный эффект и рекомендации для родителей и педагогов.</p>
               <button
                 type="button"
                 onClick={() => {
@@ -325,12 +325,12 @@ export function ParentsPage() {
                   setDemoRouteStep('report');
                 }}
               >
-                Next: copy competition report
+                Далее: скопировать отчёт для конкурса
               </button>
             </>
           )}
           {demoRouteStep === 'report' && (
-            <p className="section-meta">Step 5/5: Скопируйте конкурсный отчет и завершите демо.</p>
+            <p className="section-meta">Шаг 5/5: Скопируйте конкурсный отчёт и завершите демо-показ.</p>
           )}
         </section>
       )}
@@ -344,7 +344,7 @@ export function ParentsPage() {
         </div>
         {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
         {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
-        {demoRouteActive && demoRouteStep === 'done' && <p className="status-ok">Demo route complete ✅</p>}
+        {demoRouteActive && demoRouteStep === 'done' && <p className="status-ok">Маршрут демо-показа завершён ✅</p>}
       </section>
 
       <div className="parents-grid">
@@ -385,7 +385,7 @@ export function ParentsPage() {
         </ul>
       </section>
 
-      <h3>20-минутные наборы сцен</h3>
+      <h3>20-минутные мини-уроки</h3>
       <div className="kits-grid">
         {lessonKits.map((kit) => {
           const isCompleted = progress.completedLessonKitIds.includes(kit.id);
@@ -403,7 +403,7 @@ export function ParentsPage() {
                 }}
                 disabled={!campaign}
               >
-                Начать урок
+                Открыть урок
               </button>
             </article>
           );
