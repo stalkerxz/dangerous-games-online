@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
@@ -107,6 +108,7 @@ function toReadableSkillName(value: string): string {
 }
 
 export function ParentsPage() {
+  const navigate = useNavigate();
   const { campaign, achievements, loading } = useContent();
   const { ageMode } = useAgeMode();
   const [progress, setProgress] = useState(() => readPlayerProgress());
@@ -268,10 +270,16 @@ export function ParentsPage() {
   return (
     <section className="parents-page">
       <header className="page-hero page-hero-parents">
-        <p className="page-hero-kicker">Поддержка семьи</p>
+        <p className="page-hero-kicker">Школа и семья</p>
         <h2>Панель для родителей и педагогов</h2>
-        <p className="section-meta">Краткий образовательный отчёт: какие навыки формируются, как измеряется прогресс и какие мини-уроки можно провести дома или на классном часе.</p>
+        <p className="section-meta">Краткий образовательный и профилактический отчёт: какие навыки формируются, как измеряется прогресс и какие мини-уроки удобно провести в школе и дома.</p>
       </header>
+
+      <section className="school-use-grid" aria-label="Форматы школьного использования">
+        <article className="school-use-card"><h3>Подходит для классного часа</h3></article>
+        <article className="school-use-card"><h3>Можно использовать во внеурочной деятельности</h3></article>
+        <article className="school-use-card"><h3>Подходит для обсуждения дома с родителями</h3></article>
+      </section>
 
 
 
@@ -317,7 +325,7 @@ export function ParentsPage() {
           <h3>Маршрут демонстрации</h3>
           {demoRouteStep === 'parents' && (
             <>
-              <p className="section-meta">Шаг 4/5: Покажите образовательный эффект и рекомендации для родителей и педагогов.</p>
+              <p className="section-meta">Шаг 4/5: Педагогический блок — покажите цель занятия, обсуждение после прохождения и зону внимания.</p>
               <button
                 type="button"
                 onClick={() => {
@@ -330,14 +338,14 @@ export function ParentsPage() {
             </>
           )}
           {demoRouteStep === 'report' && (
-            <p className="section-meta">Шаг 5/5: Скопируйте конкурсный отчёт и завершите демо-показ.</p>
+            <p className="section-meta">Шаг 5/5: Конкурсный блок — скопируйте отчёт с образовательными и профилактическими KPI.</p>
           )}
         </section>
       )}
 
       <section className="parents-report-panel" aria-label="Экспорт отчётов">
         <h3>Отчёты для конкурса</h3>
-        <p className="section-meta">Без персональных данных: только агрегированные KPI.</p>
+        <p className="section-meta">Без персональных данных: только агрегированные KPI. Подходит для школьной презентации, отчёта по профилактике и конкурсной заявки.</p>
         <div className="report-buttons-row">
           <button type="button" className="report-button" onClick={() => copyText(shortReportText)}>Короткий отчёт</button>
           <button type="button" className="report-button report-button-emphasis" onClick={() => { void copyText(competitionReportText); if (demoRouteActive && demoRouteStep === 'report') { updateDemoRouteStep('done'); setDemoRouteStep('done'); } }}>Отчёт для конкурса</button>
@@ -345,6 +353,44 @@ export function ParentsPage() {
         {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
         {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
         {demoRouteActive && demoRouteStep === 'done' && <p className="status-ok">Маршрут демо-показа завершён ✅</p>}
+      </section>
+
+      <section className="parents-report-panel" aria-label="Быстрые подсказки для педагога">
+        <h3>Цель занятия</h3>
+        <p className="section-meta">Отработать 1–2 безопасных алгоритма: проверка информации, защита аккаунта, корректная реакция на травлю.</p>
+        <h3>Что обсудить после прохождения</h3>
+        <p className="section-meta">Какое решение оказалось самым полезным в школе, что можно применить дома и к кому обратиться за поддержкой.</p>
+        <h3>На что обратить внимание</h3>
+        <p className="section-meta">Где ученик сомневается, какие сигналы риска пропускает и как меняется доля безопасных решений.</p>
+        <h3>Какой навык формируется</h3>
+        <p className="section-meta">Цифровая грамотность, профилактическое мышление и спокойная коммуникация в конфликтных ситуациях.</p>
+      </section>
+
+      <section className="parents-report-panel" aria-label="Быстрый выбор сценария">
+        <h3>Быстрый выбор сценария</h3>
+        <div className="quick-picks-grid">
+          <article className="quick-pick-card">
+            <h4>Для классного часа</h4>
+            <p className="section-meta">20-минутный мини-урок «Антифейк» + обсуждение сигналов риска в школьных чатах.</p>
+            <button type="button" onClick={() => { setLessonJustCompleted(false); setActiveKitId('kit-antifake'); }}>
+              Открыть мини-урок
+            </button>
+          </article>
+          <article className="quick-pick-card">
+            <h4>Для разговора с родителями</h4>
+            <p className="section-meta">Набор «Приватность» с фокусом на домашние договорённости и границы личных данных.</p>
+            <button type="button" onClick={() => { setLessonJustCompleted(false); setActiveKitId('kit-privacy'); }}>
+              Открыть набор
+            </button>
+          </article>
+          <article className="quick-pick-card">
+            <h4>Для профилактики</h4>
+            <p className="section-meta">Демо-маршрут: учебная кампания → школьная сцена → улики → педагогический и конкурсный отчёт.</p>
+            <button type="button" onClick={() => navigate('/campaign')}>
+              Перейти к маршруту
+            </button>
+          </article>
+        </div>
       </section>
 
       <div className="parents-grid">
