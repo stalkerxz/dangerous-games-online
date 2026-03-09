@@ -62,9 +62,50 @@ export type StoryScene = {
   chat: SceneMessage[];
   choices: SceneChoice[];
   tags?: string[];
+  miniTask?: SceneMiniTask;
   modes?: AgeMode[];
   modeContent?: Partial<Record<Exclude<AgeMode, 'all'>, ModeSceneContent>>;
 };
+
+export type SceneMiniTask =
+  | {
+      type: 'find_clue';
+      prompt: string;
+      targetClue: string;
+      options: Array<{
+        id: string;
+        text: string;
+        clue: string;
+      }>;
+      successText: string;
+      skill: string;
+      algorithm: string;
+    }
+  | {
+      type: 'sort_safe_risky';
+      prompt: string;
+      items: Array<{
+        id: string;
+        text: string;
+        category: 'safe' | 'risky';
+        explanation: string;
+      }>;
+      skill: string;
+      algorithm: string;
+    }
+  | {
+      type: 'build_safe_response';
+      prompt: string;
+      requiredPicks: number;
+      fragments: Array<{
+        id: string;
+        text: string;
+        correct: boolean;
+      }>;
+      successText: string;
+      skill: string;
+      algorithm: string;
+    };
 
 export type CampaignChapter = {
   id: string;

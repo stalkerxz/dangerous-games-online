@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { AgeMode, SceneChoice, SceneMessage, StoryScene } from '../contentEngine';
+import type { AgeMode, SceneChoice, SceneMessage, SceneMiniTask, StoryScene } from '../contentEngine';
 import type { GameEvent } from '../achievements';
-import { recordSceneClues } from '../cluesCollection';
+import { recordDirectClue, recordSceneClues } from '../cluesCollection';
 
 type ScenePlayerProps = {
   title: string;
@@ -109,6 +109,42 @@ function classifySpeaker(speaker: string): 'player' | 'system' | 'other' {
   return 'other';
 }
 
+function getSkillFromTags(tags: string[] | undefined): string {
+  if ((tags ?? []).includes('antibullying')) {
+    return 'Коммуникация и поддержка';
+  }
+  if ((tags ?? []).includes('account')) {
+    return 'Защита аккаунта';
+  }
+  if ((tags ?? []).includes('antifake')) {
+    return 'Проверка источника';
+  }
+  return 'Цифровая безопасность';
+}
+
+function getAlgorithmFromTags(tags: string[] | undefined): string {
+  if ((tags ?? []).includes('antifake')) {
+    return 'Стоп → Проверь источник → Действуй через официальный канал';
+  }
+  if ((tags ?? []).includes('account')) {
+    return 'Не делись кодами → Сверь адрес → Подтверди у взрослого';
+  }
+  if ((tags ?? []).includes('antibullying')) {
+    return 'Поддержи → Сохрани доказательства → Сообщи взрослому';
+  }
+  return 'Пауза → Проверка → Безопасный выбор';
+}
+
+function getRiskAvoidedText(miniTask: SceneMiniTask): string {
+  if (miniTask.type === 'find_clue') {
+    return `Удалось заметить сигнал риска: ${miniTask.targetClue}.`;
+  }
+  if (miniTask.type === 'sort_safe_risky') {
+    return 'Удалось отделить безопасные шаги от опасных импульсивных действий.';
+  }
+  return 'Удалось собрать корректный ответ без передачи данных и без эскалации конфликта.';
+}
+
 export function ScenePlayer({
   title,
   scenes,
@@ -135,6 +171,12 @@ export function ScenePlayer({
   const [isCompleted, setIsCompleted] = useState(false);
   const [visibleChatCount, setVisibleChatCount] = useState(0);
   const [typingMessage, setTypingMessage] = useState<SceneMessage | null>(null);
+  const [miniTaskPassed, setMiniTaskPassed] = useState(false);
+  const [miniTaskFeedback, setMiniTaskFeedback] = useState<string | null>(null);
+  const [miniTaskRiskFeedback, setMiniTaskRiskFeedback] = useState<string | null>(null);
+  const [selectedClueOptionId, setSelectedClueOptionId] = useState<string | null>(null);
+  const [sortAssignments, setSortAssignments] = useState<Record<string, 'safe' | 'risky'>>({});
+  const [buildSelections, setBuildSelections] = useState<string[]>([]);
   const chatListRef = useRef<HTMLUListElement | null>(null);
   const checkedAttachmentSrcRef = useRef(new Set<string>());
 
@@ -154,6 +196,15 @@ export function ScenePlayer({
     choices: modeScene?.choices ?? baseScene.choices
   };
   const highlightTerms = useMemo(() => getHighlightTerms(scene.tags), [scene.tags]);
+
+  useEffect(() => {
+    setMiniTaskPassed(false);
+    setMiniTaskFeedback(null);
+    setMiniTaskRiskFeedback(null);
+    setSelectedClueOptionId(null);
+    setSortAssignments({});
+    setBuildSelections([]);
+  }, [scene.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -290,6 +341,106 @@ export function ScenePlayer({
     });
   };
 
+  const completeFindClueTask = (optionId: string) => {
+    if (!scene.miniTask || scene.miniTask.type !== 'find_clue') {
+      return;
+    }
+
+    const option = scene.miniTask.options.find((item) => item.id === optionId);
+    if (!option) {
+      return;
+    }
+
+    setSelectedClueOptionId(optionId);
+    if (option.clue === scene.miniTask.targetClue) {
+      setMiniTaskPassed(true);
+      setMiniTaskFeedback(scene.miniTask.successText);
+      setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
+      recordDirectClue(scene.miniTask.targetClue, option.text);
+    } else {
+      setMiniTaskPassed(false);
+      setMiniTaskFeedback('Почти. Ищи именно признак давления, запроса кода, подозрительной ссылки или секрета в сообщении.');
+      setMiniTaskRiskFeedback(null);
+    }
+  };
+
+  const assignSortBucket = (itemId: string, bucket: 'safe' | 'risky') => {
+    setSortAssignments((current) => ({ ...current, [itemId]: bucket }));
+  };
+
+  const evaluateSortTask = () => {
+    if (!scene.miniTask || scene.miniTask.type !== 'sort_safe_risky') {
+      return;
+    }
+
+    const isComplete = scene.miniTask.items.every((item) => sortAssignments[item.id]);
+    if (!isComplete) {
+      setMiniTaskPassed(false);
+      setMiniTaskFeedback('Разложи все карточки по двум корзинам: Безопасно и Рискованно.');
+      return;
+    }
+
+    const correct = scene.miniTask.items.every((item) => sortAssignments[item.id] === item.category);
+    if (correct) {
+      setMiniTaskPassed(true);
+      setMiniTaskFeedback('Отлично! Ты верно отделил(а) безопасные действия от рискованных.');
+      setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
+      recordDirectClue(scene.tags?.[0] ?? 'antifake', scene.miniTask.prompt);
+      return;
+    }
+
+    setMiniTaskPassed(false);
+    setMiniTaskFeedback('Есть ошибки в сортировке. Перепроверь, где действие действительно защищает, а где повышает риск.');
+    setMiniTaskRiskFeedback(null);
+  };
+
+  const toggleBuildSelection = (fragmentId: string) => {
+    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response') {
+      return;
+    }
+
+    const requiredPicks = scene.miniTask.requiredPicks;
+    setBuildSelections((current) => {
+      if (current.includes(fragmentId)) {
+        return current.filter((id) => id !== fragmentId);
+      }
+      if (current.length >= requiredPicks) {
+        return current;
+      }
+      return [...current, fragmentId];
+    });
+  };
+
+  const evaluateBuildTask = () => {
+    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response') {
+      return;
+    }
+
+    if (buildSelections.length !== scene.miniTask.requiredPicks) {
+      setMiniTaskPassed(false);
+      setMiniTaskFeedback(`Выбери ${scene.miniTask.requiredPicks} фрагмента(ов), чтобы собрать ответ.`);
+      setMiniTaskRiskFeedback(null);
+      return;
+    }
+
+    const selectedSet = new Set(buildSelections);
+    const allCorrect = scene.miniTask.fragments
+      .filter((fragment) => fragment.correct)
+      .every((fragment) => selectedSet.has(fragment.id));
+
+    if (allCorrect) {
+      setMiniTaskPassed(true);
+      setMiniTaskFeedback(scene.miniTask.successText);
+      setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
+      recordDirectClue(scene.tags?.[0] ?? 'communication', scene.miniTask.prompt);
+      return;
+    }
+
+    setMiniTaskPassed(false);
+    setMiniTaskFeedback('Часть фраз усиливает риск. Убери лишнее и оставь только спокойный безопасный ответ.');
+    setMiniTaskRiskFeedback(null);
+  };
+
   const nextScene = () => {
     if (selectedChoice) {
       recordSceneClues(scene, selectedChoice);
@@ -335,6 +486,8 @@ export function ScenePlayer({
       onComplete?.();
     }
   };
+
+  const isMiniTaskRequired = Boolean(scene.miniTask);
 
   return (
     <article className="scene-card">
@@ -382,6 +535,81 @@ export function ScenePlayer({
         )}
       </ul>
 
+      {scene.miniTask && (
+        <section className="task-card" aria-label="Мини-задание">
+          <h4>Мини-задание</h4>
+          <p>{scene.miniTask.prompt}</p>
+
+          {scene.miniTask.type === 'find_clue' && (
+            <div className="task-grid">
+              {scene.miniTask.options.map((option) => (
+                <button
+                  className={`choice-button ${selectedClueOptionId === option.id ? 'task-chip-selected' : 'task-chip'}`}
+                  key={option.id}
+                  type="button"
+                  onClick={() => completeFindClueTask(option.id)}
+                >
+                  {option.text}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {scene.miniTask.type === 'sort_safe_risky' && (
+            <div className="task-grid">
+              {scene.miniTask.items.map((item) => (
+                <div className="sort-row" key={item.id}>
+                  <p>{item.text}</p>
+                  <div className="sort-actions">
+                    <button
+                      className={`choice-button ${sortAssignments[item.id] === 'safe' ? 'choice-safe' : ''}`}
+                      type="button"
+                      onClick={() => assignSortBucket(item.id, 'safe')}
+                    >
+                      Безопасно
+                    </button>
+                    <button
+                      className={`choice-button ${sortAssignments[item.id] === 'risky' ? 'choice-risky' : ''}`}
+                      type="button"
+                      onClick={() => assignSortBucket(item.id, 'risky')}
+                    >
+                      Рискованно
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button className="choice-button" type="button" onClick={evaluateSortTask}>Проверить сортировку</button>
+            </div>
+          )}
+
+          {scene.miniTask.type === 'build_safe_response' && (
+            <div className="task-grid">
+              {scene.miniTask.fragments.map((fragment) => (
+                <button
+                  className={`choice-button ${buildSelections.includes(fragment.id) ? 'task-chip-selected' : 'task-chip'}`}
+                  key={fragment.id}
+                  type="button"
+                  onClick={() => toggleBuildSelection(fragment.id)}
+                >
+                  {fragment.text}
+                </button>
+              ))}
+              <button className="choice-button" type="button" onClick={evaluateBuildTask}>Собрать безопасный ответ</button>
+            </div>
+          )}
+
+          {miniTaskFeedback && <p className="section-meta">{miniTaskFeedback}</p>}
+          {miniTaskRiskFeedback && (
+            <div className="task-reward" role="status">
+              <p>🎉 Улика добавлена в коллекцию.</p>
+              <p>{miniTaskRiskFeedback}</p>
+              <p>Навык: {scene.miniTask.skill}</p>
+              <p>Алгоритм: {scene.miniTask.algorithm}</p>
+            </div>
+          )}
+        </section>
+      )}
+
       <div className="choices">
         {scene.choices.map((choice) => (
           <button
@@ -409,6 +637,11 @@ export function ScenePlayer({
                 {classifyRisk(selectedChoice) === 'safe' ? 'Безопасный выбор' : classifyRisk(selectedChoice) === 'risky' ? 'Рискованный выбор' : 'Нейтральный выбор'}
               </span>
             </div>
+            <div className="task-reward">
+              <p>Риск: {classifyRisk(selectedChoice) === 'safe' ? 'Риск снижен — ты не передал(а) данные и не поддался(лась) давлению.' : 'Риск вырос — действие могло привести к утечке/эскалации.'}</p>
+              <p>Навык: {getSkillFromTags(scene.tags)}</p>
+              <p>Алгоритм: {getAlgorithmFromTags(scene.tags)}</p>
+            </div>
           </section>
 
           <section className="quiz-card" aria-label="Проверка понимания">
@@ -425,9 +658,10 @@ export function ScenePlayer({
                 </li>
               ))}
             </ol>
-            <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null}>
+            <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null || (isMiniTaskRequired && !miniTaskPassed)}>
               {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
+            {isMiniTaskRequired && !miniTaskPassed && <p className="section-meta">Сначала заверши мини-задание этой сцены.</p>}
           </section>
         </div>
       )}

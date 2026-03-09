@@ -385,6 +385,62 @@ button[disabled] {
   border: 1px solid var(--color-border);
 }
 
+
+.task-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #0d1a2f;
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.task-grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sort-row {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sort-row p {
+  margin: 0;
+}
+
+.sort-actions {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.task-chip {
+  background: linear-gradient(180deg, #31456f 0%, #243758 100%);
+  border-color: #6e8ecf;
+}
+
+.task-chip-selected {
+  background: linear-gradient(180deg, #146247 0%, #0e4f3f 100%);
+  border-color: #2d9f7e;
+}
+
+.task-reward {
+  border: 1px solid #2d815f;
+  border-radius: var(--radius-sm);
+  background: #103627;
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.task-reward p {
+  margin: 0;
+}
+
 .choices {
   display: grid;
   gap: var(--space-2);

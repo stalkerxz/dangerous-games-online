@@ -92,6 +92,31 @@ export function recordSceneClues(scene: StoryScene, choice: SceneChoice): CluesC
 }
 
 
+
+export function recordDirectClue(clue: string, example: string): CluesCollection {
+  const collection = readCluesCollection();
+  const normalizedClue = clue.trim();
+  if (!normalizedClue) {
+    return collection;
+  }
+
+  const current = collection[normalizedClue] ?? { count: 0, last_seen: '', examples: [] };
+  const normalizedExample = normalizeExample(example);
+  const mergedExamples = [...current.examples];
+  if (normalizedExample && !mergedExamples.includes(normalizedExample)) {
+    mergedExamples.unshift(normalizedExample);
+  }
+
+  collection[normalizedClue] = {
+    count: current.count + 1,
+    last_seen: nowIso(),
+    examples: mergedExamples.slice(0, MAX_EXAMPLES)
+  };
+
+  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(collection));
+  return collection;
+}
+
 export function seedDemoClues(): CluesCollection {
   const now = nowIso();
   const demo: CluesCollection = {
