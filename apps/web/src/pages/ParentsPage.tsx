@@ -230,14 +230,14 @@ export function ParentsPage() {
 
 
   if (loading) {
-    return <section><h2>Parents / Teachers</h2><p>Загружаем отчёт…</p></section>;
+    return <section><h2>Родители и наставники</h2><p>Загружаем отчёт…</p></section>;
   }
 
   if (activeKit && lessonJustCompleted) {
     return (
       <section>
         <h2>Урок завершён</h2>
-        <p>Набор «{activeKit.title}» пройден. Можно вернуться к отчёту или запустить другой урок.</p>
+        <p>Набор «{activeKit.title}» пройден. Отличный результат — можно вернуться к отчёту или запустить другой урок.</p>
         <button
           type="button"
           onClick={() => {
@@ -267,8 +267,28 @@ export function ParentsPage() {
 
   return (
     <section className="parents-page">
-      <h2>Панель для родителей и наставников</h2>
-      <p className="section-meta">Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
+      <header className="page-hero page-hero-parents">
+        <p className="page-hero-kicker">Поддержка семьи</p>
+        <h2>Панель для родителей и наставников</h2>
+        <p className="section-meta">Краткий отчёт по навыкам и готовые 20-минутные наборы сцен для совместного разбора.</p>
+      </header>
+
+
+
+      {(campaignKpi?.overall.scenes_completed_count ?? 0) === 0 && (
+        <section className="empty-state" aria-label="Пустое состояние parents">
+          <div className="empty-art" aria-hidden>👨‍👩‍👧‍👦</div>
+          <h3>Данных пока недостаточно</h3>
+          <p>Пройдите 1–2 сцены кампании, чтобы получить персональные рекомендации и видимый KPI-прогресс.</p>
+        </section>
+      )}
+
+      {progress.completedLessonKitIds.length === lessonKits.length && lessonKits.length > 0 && (
+        <section className="completion-state">
+          <h3>Все учебные наборы завершены</h3>
+          <p>Вы прошли все 20-минутные наборы. Можно использовать отчёт как финальную презентацию навыков.</p>
+        </section>
+      )}
 
       <article className="parents-summary-card">
         <div>

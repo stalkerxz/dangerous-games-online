@@ -93,6 +93,7 @@ export function CluesPage() {
 
   const knownTypes = Object.keys(clueMetaMap).length;
   const discoveredTypes = items.length;
+  const allDiscovered = discoveredTypes >= knownTypes && knownTypes > 0;
   const clueLiteracyPercent = knownTypes === 0 ? 0 : Math.min(100, Math.round((discoveredTypes / knownTypes) * 100));
 
   return (
@@ -138,7 +139,18 @@ export function CluesPage() {
       </section>
 
       {items.length === 0 && (
-        <p className="section-meta">Пока нет собранных улик. Пройдите любую сцену кампании, чтобы начать коллекцию.</p>
+        <section className="empty-state" aria-label="Пустое состояние улик">
+          <div className="empty-art" aria-hidden>🕵️</div>
+          <h3>Коллекция улик ещё пуста</h3>
+          <p>Пройдите любую сцену кампании — и здесь появятся первые сигналы риска с примерами.</p>
+        </section>
+      )}
+
+      {allDiscovered && (
+        <section className="completion-state">
+          <h3>Коллекция полностью собрана</h3>
+          <p>Вы открыли все типы улик. Это показатель зрелой цифровой грамотности.</p>
+        </section>
       )}
 
       {items.length > 0 && (

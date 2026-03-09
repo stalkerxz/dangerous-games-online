@@ -6,6 +6,7 @@ import { App } from './App';
 import { AgeModeProvider } from './ageMode';
 import { ContentProvider } from './contentContext';
 import { OnboardingProvider } from './onboarding';
+import { PresentationModeProvider } from './presentationMode';
 import './styles.css';
 
 registerSW({ immediate: true });
@@ -21,9 +22,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Router>
       <AgeModeProvider>
         <OnboardingProvider>
-          <ContentProvider>
-            <App />
-          </ContentProvider>
+          <PresentationModeProvider>
+            <ContentProvider>
+              <App />
+            </ContentProvider>
+          </PresentationModeProvider>
         </OnboardingProvider>
       </AgeModeProvider>
     </Router>

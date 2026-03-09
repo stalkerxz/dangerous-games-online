@@ -50,7 +50,8 @@ export function OnboardingPage() {
 
   return (
     <section className="onboarding" aria-label="Онбординг">
-      <div className="onboarding-card">
+      <div className="onboarding-card polished-card">
+        <div className="page-illustration" aria-hidden="true">✨🛡️✨</div>
         <p className="onboarding-progress">Шаг {Math.min(stepIndex + 1, steps.length + 1)} из {steps.length + 1}</p>
 
         {!isFinalStep && (
@@ -102,7 +103,7 @@ export function OnboardingPage() {
 
           {isFinalStep && (
             <button type="button" className="onboarding-primary" onClick={completeOnboarding}>
-              Начать
+              Начать путешествие
             </button>
           )}
         </div>
