@@ -44,20 +44,42 @@ export function WeeklyPage() {
     processAchievementEvent(achievements, event);
   };
 
-  return (
-    <section>
-      <h2>Weekly Missions</h2>
-      {!activeWeekly && nextWeekly && (
-        <p>Coming next: {nextWeekly.title} ({nextWeekly.start_date} - {nextWeekly.end_date})</p>
-      )}
-      {!activeWeekly && !nextWeekly && <p>No active weekly mission.</p>}
+  const isActiveCompleted = activeWeekly ? progress.completedWeeklyIds.includes(activeWeekly.id) : false;
 
-      {activeWeekly && (
+  return (
+    <section className="weekly-page">
+      <header className="page-hero page-hero-weekly">
+        <p className="page-hero-kicker">Еженедельный ритм</p>
+        <h2>Еженедельные миссии</h2>
+        <p className="section-meta">Короткие сценарии для регулярной практики и стабильного роста навыков.</p>
+      </header>
+
+      {!activeWeekly && nextWeekly && (
+        <section className="empty-state" aria-label="Следующая миссия">
+          <div className="empty-art" aria-hidden>📅</div>
+          <h3>Новая миссия уже на подходе</h3>
+          <p>{nextWeekly.title} · {nextWeekly.start_date} — {nextWeekly.end_date}</p>
+        </section>
+      )}
+
+      {!activeWeekly && !nextWeekly && (
+        <section className="empty-state" aria-label="Пустое состояние weekly">
+          <div className="empty-art" aria-hidden>🛰️</div>
+          <h3>Пока нет активной еженедельной миссии</h3>
+          <p>Проверьте позже — новые миссии появятся в следующем обновлении контента.</p>
+        </section>
+      )}
+
+      {activeWeekly && isActiveCompleted && (
+        <section className="completion-state">
+          <h3>Миссия недели выполнена</h3>
+          <p>Отличная работа! Награда начислена, а прогресс сохранён в профиле.</p>
+        </section>
+      )}
+
+      {activeWeekly && !isActiveCompleted && (
         <>
-          <p>
-            Active now: {activeWeekly.start_date} - {activeWeekly.end_date}
-            {progress.completedWeeklyIds.includes(activeWeekly.id) ? ' • Completed' : ''}
-          </p>
+          <p className="section-meta">Активна сейчас: {activeWeekly.start_date} — {activeWeekly.end_date}</p>
           <ScenePlayer
             title={activeWeekly.title}
             scenes={activeWeekly.scenes}
@@ -68,7 +90,7 @@ export function WeeklyPage() {
             eventContext={{ weeklyId: activeWeekly.id }}
             footer={(
               <p>
-                Reward: badge <strong>{activeWeekly.rewards.badge}</strong>, skills{' '}
+                Награда: бейдж <strong>{activeWeekly.rewards.badge}</strong>, навыки{' '}
                 {Object.entries(activeWeekly.rewards.skills)
                   .map(([key, value]) => `${key} +${value}`)
                   .join(', ')}
@@ -78,23 +100,23 @@ export function WeeklyPage() {
         </>
       )}
 
-      <h3>Archive</h3>
+      <h3>Архив миссий</h3>
 
       {error && (
         <p>
-          Weekly sync failed: {error}{' '}
-          <button type="button" onClick={() => void retrySync()} disabled={loading}>Retry</button>
+          Синхронизация weekly не удалась: {error}{' '}
+          <button type="button" onClick={() => void retrySync()} disabled={loading}>Повторить</button>
         </p>
       )}
 
-      {loading && <p>Loading weekly archive…</p>}
-      {!loading && sortedWeekly.length === 0 && <p>No downloaded weekly packs yet.</p>}
+      {loading && <p>Загружаем архив weekly…</p>}
+      {!loading && sortedWeekly.length === 0 && <p>Локально пока нет загруженных weekly-паков.</p>}
       {!loading && sortedWeekly.length > 0 && (
         <ul>
           {sortedWeekly.map((pack) => (
             <li key={pack.id}>
-              {pack.title} ({pack.start_date} - {pack.end_date})
-              {progress.completedWeeklyIds.includes(pack.id) ? ' ✅ Completed' : ''}
+              {pack.title} ({pack.start_date} — {pack.end_date})
+              {progress.completedWeeklyIds.includes(pack.id) ? ' ✅ Выполнено' : ''}
             </li>
           ))}
         </ul>

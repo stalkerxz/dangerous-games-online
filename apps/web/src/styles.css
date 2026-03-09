@@ -978,3 +978,174 @@ button[disabled] {
     padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom) + var(--space-6));
   }
 }
+
+.page-hero {
+  border: 1px solid #3b557f;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  background: radial-gradient(circle at 90% -10%, rgba(96, 165, 250, 0.28), rgba(15, 23, 42, 0.94) 52%);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.page-hero-weekly {
+  background: radial-gradient(circle at 85% -10%, rgba(16, 185, 129, 0.2), rgba(15, 23, 42, 0.94) 48%);
+}
+
+.page-hero-parents {
+  background: radial-gradient(circle at 85% -10%, rgba(34, 211, 238, 0.2), rgba(15, 23, 42, 0.94) 48%);
+}
+
+.page-hero-achievements {
+  background: radial-gradient(circle at 85% -10%, rgba(250, 204, 21, 0.2), rgba(15, 23, 42, 0.94) 48%);
+}
+
+.page-hero-kicker {
+  margin: 0;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c7d8ff;
+  font-weight: 700;
+}
+
+.empty-state,
+.completion-state,
+.achievement-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: linear-gradient(180deg, rgba(20, 32, 55, 0.92) 0%, rgba(13, 22, 37, 0.96) 100%);
+  box-shadow: var(--shadow-card);
+}
+
+.empty-state,
+.completion-state {
+  display: grid;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.completion-state {
+  border-color: #2f7a62;
+  background: linear-gradient(180deg, rgba(17, 53, 43, 0.75) 0%, rgba(12, 31, 30, 0.95) 100%);
+}
+
+.empty-art,
+.page-illustration {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  background: rgba(64, 108, 185, 0.32);
+  border: 1px solid #5579b9;
+}
+
+.achievement-card {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.achievement-card.is-unlocked {
+  border-color: #2f7a62;
+}
+
+.completion-note,
+.achievement-progress {
+  margin: 0;
+}
+
+.polished-card,
+.scene-card,
+.chapter-card,
+.clue-card-rich,
+.skill-card,
+.kit-card,
+.parents-report-panel,
+.recommendation-card,
+.parents-summary-card,
+.clues-summary {
+  animation: fadeUp 320ms ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scene-card,
+.debrief,
+.quiz-card,
+button,
+.nav-link,
+.clue-card-rich,
+.skill-card,
+.kit-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 220ms ease;
+}
+
+.chapter-card:hover,
+.clue-card-rich:hover,
+.skill-card:hover,
+.kit-card:hover,
+.scene-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
+button:active:not([disabled]) {
+  transform: translateY(1px) scale(0.995);
+}
+
+button:focus-visible,
+.nav-link:focus-visible,
+.choice-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.45), 0 0 0 6px rgba(7, 18, 39, 0.9);
+}
+
+.debrief-layout {
+  animation: fadeUp 260ms ease;
+}
+
+.layout-presentation .section-meta,
+.layout-presentation .campaign-hero-kicker,
+.layout-presentation .page-hero-kicker {
+  opacity: 0.82;
+}
+
+.layout-presentation .parents-report-panel[aria-label="Demo route guidance"] {
+  display: none;
+}
+
+.layout-presentation .site-header h1 {
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .empty-state,
+  .completion-state,
+  .achievement-card {
+    padding: var(--space-3);
+  }
+
+  button,
+  .nav-link,
+  .choice-button,
+  .report-button {
+    min-height: 48px;
+  }
+
+  main {
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+  }
+}

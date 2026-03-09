@@ -5,6 +5,7 @@ import { useContent } from '../contentContext';
 import { useOnboarding } from '../onboarding';
 import { disableDemoMode, enableDemoMode, isDemoModeEnabled, resetDemoData } from '../demoMode';
 import { clearDemoRoute, startDemoRoute } from '../demoRoute';
+import { usePresentationMode } from '../presentationMode';
 
 const options: Array<{ value: AgeMode; label: string; hint: string }> = [
   { value: '8-10', label: '8-10', hint: 'Проще формулировки и короткие подсказки.' },
@@ -19,14 +20,15 @@ export function SettingsPage() {
   const { restartOnboarding } = useOnboarding();
   const [resetStatus, setResetStatus] = useState<string | null>(null);
   const [demoModeEnabled, setDemoModeEnabled] = useState(() => isDemoModeEnabled());
+  const { presentationMode, setPresentationMode } = usePresentationMode();
 
   const handleResetCache = async () => {
-    setResetStatus('Resetting content cache…');
+    setResetStatus('Сбрасываем кэш контента…');
     try {
       await resetCache();
-      setResetStatus('Content cache reset complete.');
+      setResetStatus('Кэш контента успешно сброшен.');
     } catch {
-      setResetStatus('Failed to reset content cache.');
+      setResetStatus('Не удалось сбросить кэш контента.');
     }
   };
 
@@ -60,9 +62,9 @@ export function SettingsPage() {
 
   return (
     <section>
-      <h2>Settings</h2>
-      <h3>Age mode</h3>
-      <p>Choose how scene text is shown in campaign and weekly missions.</p>
+      <h2>Настройки</h2>
+      <h3>Возрастной режим</h3>
+      <p>Выберите, как будут показаны формулировки в кампании и еженедельных миссиях.</p>
       {options.map((option) => (
         <label key={option.value} className="form-option">
           <input
@@ -76,19 +78,33 @@ export function SettingsPage() {
         </label>
       ))}
 
-      <h3>Demo mode / Jury mode</h3>
-      <p>Быстрый режим презентации: заполнит демо-прогресс, улики, достижения и KPI без ручной подготовки.</p>
+      <h3>Демо-режим для жюри</h3>
+      <p>Заполняет демо-прогресс, улики, достижения и KPI для быстрой презентации проекта.</p>
       <button type="button" onClick={handleToggleDemoMode}>
-        {demoModeEnabled ? 'Disable demo mode' : 'Enable demo mode'}
+        {demoModeEnabled ? 'Выключить демо-режим' : 'Включить демо-режим'}
       </button>
       <div className="report-buttons-row">
         <button type="button" onClick={handleStartDemoRoute} disabled={!demoModeEnabled}>
-          Start demo route
+          Запустить демо-маршрут
         </button>
         <button type="button" onClick={handleResetDemoData}>
-          Reset demo data
+          Сбросить демо-данные
         </button>
       </div>
+
+
+
+      <h3>Режим презентации</h3>
+      <p>Более чистый интерфейс для скриншотов и демонстрации без потери функциональности.</p>
+      <label className="form-option" htmlFor="presentation-mode-toggle">
+        <input
+          id="presentation-mode-toggle"
+          type="checkbox"
+          checked={presentationMode}
+          onChange={(event) => setPresentationMode(event.target.checked)}
+        />{' '}
+        Включить Presentation mode
+      </label>
 
       <h3>Онбординг</h3>
       <p>Нужно повторить вводный квест? Запусти онбординг заново.</p>
@@ -96,28 +112,28 @@ export function SettingsPage() {
         Пройти онбординг снова
       </button>
 
-      <h3>Content</h3>
+      <h3>Контент</h3>
       <button type="button" onClick={() => void handleResetCache()} disabled={loading}>
-        Reset content cache
+        Сбросить кэш контента
       </button>
       {resetStatus && <p>{resetStatus}</p>}
 
       {error && (
         <p>
-          Sync failed: {error}{' '}
+          Синхронизация не удалась: {error}{' '}
           <button type="button" onClick={() => void retrySync()} disabled={loading}>
-            Retry
+            Повторить
           </button>
         </p>
       )}
 
       {import.meta.env.DEV && (
         <>
-          <h3>Content diagnostics (dev only)</h3>
+          <h3>Диагностика контента (только dev)</h3>
           <ul>
-            <li>Manifest version: {diagnostics.manifestVersion ?? 'unknown'}</li>
-            <li>Campaign pack version: {diagnostics.campaignVersion ?? 'unknown'}</li>
-            <li>Pack source: {source === 'network' ? 'network' : 'cache'}</li>
+            <li>Версия manifest: {diagnostics.manifestVersion ?? 'unknown'}</li>
+            <li>Версия campaign-пака: {diagnostics.campaignVersion ?? 'unknown'}</li>
+            <li>Источник пакетов: {source === 'network' ? 'network' : 'cache'}</li>
           </ul>
         </>
       )}

@@ -7,18 +7,20 @@ import { SettingsPage } from './pages/SettingsPage';
 import { CluesPage } from './pages/CluesPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { useOnboarding } from './onboarding';
+import { usePresentationMode } from './presentationMode';
 
 const navItems = [
-  { to: '/campaign', label: 'Campaign' },
-  { to: '/weekly', label: 'Weekly' },
-  { to: '/achievements', label: 'Achievements' },
-  { to: '/parents', label: 'Parents' },
+  { to: '/campaign', label: 'Кампания' },
+  { to: '/weekly', label: 'Неделя' },
+  { to: '/achievements', label: 'Достижения' },
+  { to: '/parents', label: 'Родителям' },
   { to: '/clues', label: 'Улики' },
-  { to: '/settings', label: 'Settings' }
+  { to: '/settings', label: 'Настройки' }
 ];
 
 export function App() {
   const { hasCompletedOnboarding } = useOnboarding();
+  const { presentationMode } = usePresentationMode();
 
   if (!hasCompletedOnboarding) {
     return (
@@ -31,7 +33,7 @@ export function App() {
   }
 
   return (
-    <div className="layout">
+    <div className={`layout${presentationMode ? ' layout-presentation' : ''}`}>
       <header className="site-header">
         <h1>Dangerous Games Online</h1>
         <nav className="desktop-nav" aria-label="Primary">

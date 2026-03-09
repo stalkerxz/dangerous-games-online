@@ -148,7 +148,7 @@ export function CampaignPage() {
       return;
     }
     setSummaryChapterId(null);
-    setActiveFlow({ kind: 'final', chapter, scenes: [finalScene], title: `${chapter.title}: Final case` });
+    setActiveFlow({ kind: 'final', chapter, scenes: [finalScene], title: `${chapter.title}: Финальный кейс` });
   };
 
   const openDemoMessengerScene = () => {
@@ -184,7 +184,7 @@ export function CampaignPage() {
       return;
     }
 
-    setActiveFlow({ kind: 'repeat', chapter, scenes: selected, title: `${chapter.title}: Repeat weak skill` });
+    setActiveFlow({ kind: 'repeat', chapter, scenes: selected, title: `${chapter.title}: Повторить слабый навык` });
     setSummaryChapterId(null);
   };
 
@@ -195,8 +195,8 @@ export function CampaignPage() {
     return (
       <section>
         <h2>{campaign.title}</h2>
-        <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
-        <button type="button" onClick={() => setActiveFlow(null)}>← Back to city map</button>
+        <p className="section-meta">Источник: {source === 'network' ? 'Синхронизация онлайн' : 'Локальный кэш'}</p>
+        <button type="button" onClick={() => setActiveFlow(null)}>← Вернуться к карте</button>
         <ScenePlayer
           title={activeFlow.title}
           scenes={activeFlow.scenes}
@@ -231,22 +231,22 @@ export function CampaignPage() {
 
     return (
       <section className="campaign-page">
-        <h2>Chapter Summary: {summaryChapter.title}</h2>
-        <p>Scenes completed: {summaryMetrics.scenes_completed_count}</p>
-        <p>Choices: safe {summaryMetrics.safe_choices_count} / risky {summaryMetrics.risky_choices_count}</p>
-        <p>Quiz: {summaryMetrics.quiz_correct_count}/{summaryMetrics.quiz_total_count}</p>
-        <p>Final completed: {summaryMetrics.chapter_final_completed ? 'Yes' : 'No'}</p>
+        <h2>Итоги главы: {summaryChapter.title}</h2>
+        <p>Сцен пройдено: {summaryMetrics.scenes_completed_count}</p>
+        <p>Выборы: безопасные {summaryMetrics.safe_choices_count} / рискованные {summaryMetrics.risky_choices_count}</p>
+        <p>Квиз: {summaryMetrics.quiz_correct_count}/{summaryMetrics.quiz_total_count}</p>
+        <p>Финал главы: {summaryMetrics.chapter_final_completed ? 'пройден' : 'ещё не пройден'}</p>
 
-        <h3>Recommendations</h3>
+        <h3>Рекомендации</h3>
         <ol>
           {recommendations.map((tag, index) => (
-            <li key={`${tag}-${index}`}>Repeat practice for: {tag}</li>
+            <li key={`${tag}-${index}`}>Повторить практику по теме: {tag}</li>
           ))}
         </ol>
 
         <div className="chapter-actions">
-          <button type="button" onClick={() => openRepeatWeakSkill(summaryChapter)}>Repeat weak skill</button>
-          <button type="button" onClick={() => setSummaryChapterId(null)}>Back to city map</button>
+          <button type="button" onClick={() => openRepeatWeakSkill(summaryChapter)}>Повторить слабый навык</button>
+          <button type="button" onClick={() => setSummaryChapterId(null)}>Вернуться к карте</button>
         </div>
       </section>
     );
@@ -274,7 +274,7 @@ export function CampaignPage() {
               }
             }}
           >
-            Continue
+            Продолжить
           </button>
           {isDemoModeEnabled() && (
             <button
@@ -284,10 +284,10 @@ export function CampaignPage() {
                 setDemoRouteStep('campaign');
               }}
             >
-              Start demo route
+              Запустить демо-маршрут
             </button>
           )}
-          <p className="section-meta">Source: {source === 'network' ? 'Online sync' : 'Cached offline packs'}</p>
+          <p className="section-meta">Источник: {source === 'network' ? 'Синхронизация онлайн' : 'Локальный кэш'}</p>
         </div>
       </header>
 
@@ -296,7 +296,7 @@ export function CampaignPage() {
           <h3>Demo route</h3>
           {demoRouteStep === 'campaign' && (
             <>
-              <p className="section-meta">Step 1/5: Покажите campaign hero и карту города рисков.</p>
+              <p className="section-meta">Шаг 1/5: Покажите титульный блок кампании и карту города рисков.</p>
               <button
                 type="button"
                 onClick={() => {
@@ -304,20 +304,29 @@ export function CampaignPage() {
                   setDemoRouteStep('messenger');
                 }}
               >
-                Next: messenger scene
+Далее: сцена в чате
               </button>
             </>
           )}
           {demoRouteStep === 'messenger' && (
             <>
-              <p className="section-meta">Step 2/5: Запустите один чат со сценой и вложением.</p>
-              <button type="button" onClick={openDemoMessengerScene}>Play messenger demo scene</button>
+              <p className="section-meta">Шаг 2/5: Запустите одну чат-сцену с вложением.</p>
+              <button type="button" onClick={openDemoMessengerScene}>Запустить демо-сцену чата</button>
             </>
           )}
         </section>
       )}
 
-      <h3 className="campaign-map-title">City of risks</h3>
+
+
+      {chapters.length > 0 && chapters.every((chapter) => Boolean(modeProgress.completedFinals[chapter.id])) && (
+        <section className="completion-state" aria-label="Кампания завершена">
+          <h3>Кампания полностью завершена</h3>
+          <p>Все финальные кейсы пройдены. Результат готов для демонстрации жюри.</p>
+        </section>
+      )}
+
+      <h3 className="campaign-map-title">Город рисков</h3>
       <div className="campaign-map">
         {chapters.map((chapter, index) => {
           const totalScenes = chapter.scene_ids.length;
@@ -327,7 +336,7 @@ export function CampaignPage() {
           const chapterFinalDone = Boolean(modeProgress.completedFinals[chapter.id]);
           const isStarted = completedScenes > 0;
           const theme = CHAPTER_CARD_THEMES[index % CHAPTER_CARD_THEMES.length];
-          const actionLabel = chapterFinalUnlocked ? (chapterFinalDone ? 'Final case ✅' : 'Final case') : isStarted ? 'Continue' : 'Start';
+          const actionLabel = chapterFinalUnlocked ? (chapterFinalDone ? 'Финал пройден ✅' : 'Финальный кейс') : isStarted ? 'Продолжить' : 'Начать';
           const action = chapterFinalUnlocked ? () => openFinal(chapter) : () => openChapter(chapter);
 
           return (
@@ -339,13 +348,13 @@ export function CampaignPage() {
                   <p className="chapter-description">{chapterDescription(chapter)}</p>
                 </div>
               </div>
-              <p className="chapter-progress-label">Progress: {completedScenes}/{totalScenes} ({percent}%)</p>
+              <p className="chapter-progress-label">Прогресс: {completedScenes}/{totalScenes} ({percent}%)</p>
               <div className="progress" aria-hidden="true">
                 <div className="progress-bar" style={{ width: `${percent}%` }} />
               </div>
               <p className="chapter-status-row">
                 <span className={`status-pill ${chapterFinalDone ? 'safe' : chapterFinalUnlocked ? 'neutral' : 'risky'}`}>
-                  {chapterFinalDone ? 'Final complete' : chapterFinalUnlocked ? 'Final unlocked' : 'Finish scenes to unlock final'}
+                  {chapterFinalDone ? 'Финал главы пройден' : chapterFinalUnlocked ? 'Финал открыт' : 'Завершите сцены, чтобы открыть финал'}
                 </span>
               </p>
               <div className="chapter-actions chapter-actions-single">
