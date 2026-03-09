@@ -386,6 +386,7 @@ export function ParentsPage() {
       </section>
 
       <h3>20-минутные мини-уроки</h3>
+      <p className="section-meta">Подходит для классного часа и семейного разговора: короткий разбор, профилактика рисков и измеримый прогресс по навыкам.</p>
       <div className="kits-grid">
         {lessonKits.map((kit) => {
           const isCompleted = progress.completedLessonKitIds.includes(kit.id);
@@ -394,6 +395,7 @@ export function ParentsPage() {
           return (
             <article key={kit.id} className="kit-card">
               <h4>{kit.title} ({kit.sceneIds.length} сцен)</h4>
+              <p className="section-meta">Что обсудить после прохождения: 1 безопасное действие ребёнка и 1 шаг поддержки взрослого.</p>
               {(isCompleted || isFinishedNow) && <span className="badge">Пройдено</span>}
               <button
                 type="button"
