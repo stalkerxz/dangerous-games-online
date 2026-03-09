@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
-import { completeLessonKit, clearParentsDemoData, readCampaignKpiProgress, readPlayerProgress, seedParentsDemoData } from '../playerProgress';
+import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress } from '../playerProgress';
 import { useAgeMode } from '../ageMode';
-import { clearAchievementProgress, getAchievementViews, seedDemoAchievements } from '../achievements';
+import { getAchievementViews } from '../achievements';
+import { isDemoModeEnabled } from '../demoMode';
+import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 
 type SkillCard = {
   id: 'privacy' | 'account' | 'antifake' | 'communication' | 'antibullying';
@@ -112,6 +114,8 @@ export function ParentsPage() {
   const [finishedKitId, setFinishedKitId] = useState<string | null>(null);
   const [lessonJustCompleted, setLessonJustCompleted] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'done' | 'error'>('idle');
+  const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
+  const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
 
   const activeKit = lessonKits.find((kit) => kit.id === activeKitId) ?? null;
 
@@ -224,18 +228,6 @@ export function ParentsPage() {
     setLessonJustCompleted(true);
   };
 
-  const onLoadDemoData = () => {
-    const result = seedParentsDemoData(ageMode);
-    const unlockIds = (achievements?.items ?? []).slice(0, 2).map((item) => item.id);
-    seedDemoAchievements(unlockIds);
-    setProgress(result.playerProgress);
-  };
-
-  const onClearDemoData = () => {
-    clearParentsDemoData();
-    clearAchievementProgress();
-    setProgress(readPlayerProgress());
-  };
 
   if (loading) {
     return <section><h2>Parents / Teachers</h2><p>Загружаем отчёт…</p></section>;
@@ -300,21 +292,39 @@ export function ParentsPage() {
         </button>
       </article>
 
+      {demoRouteActive && (demoRouteStep === 'parents' || demoRouteStep === 'report') && (
+        <section className="parents-report-panel" aria-label="Demo route guidance">
+          <h3>Demo route</h3>
+          {demoRouteStep === 'parents' && (
+            <>
+              <p className="section-meta">Step 4/5: Покажите KPI и рекомендации для родителей.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  updateDemoRouteStep('report');
+                  setDemoRouteStep('report');
+                }}
+              >
+                Next: copy competition report
+              </button>
+            </>
+          )}
+          {demoRouteStep === 'report' && (
+            <p className="section-meta">Step 5/5: Скопируйте конкурсный отчет и завершите демо.</p>
+          )}
+        </section>
+      )}
+
       <section className="parents-report-panel" aria-label="Экспорт отчётов">
         <h3>Отчёты для конкурса</h3>
         <p className="section-meta">Без персональных данных: только агрегированные KPI.</p>
         <div className="report-buttons-row">
           <button type="button" className="report-button" onClick={() => copyText(shortReportText)}>Короткий отчёт</button>
-          <button type="button" className="report-button report-button-emphasis" onClick={() => copyText(competitionReportText)}>Отчёт для конкурса</button>
-          {import.meta.env.DEV && (
-            <>
-              <button type="button" onClick={onLoadDemoData}>Load demo data</button>
-              <button type="button" onClick={onClearDemoData}>Clear demo data</button>
-            </>
-          )}
+          <button type="button" className="report-button report-button-emphasis" onClick={() => { void copyText(competitionReportText); if (demoRouteActive && demoRouteStep === 'report') { updateDemoRouteStep('done'); setDemoRouteStep('done'); } }}>Отчёт для конкурса</button>
         </div>
         {copyState === 'done' && <p className="status-ok">Отчёт скопирован.</p>}
         {copyState === 'error' && <p className="status-error">Не удалось скопировать отчёт.</p>}
+        {demoRouteActive && demoRouteStep === 'done' && <p className="status-ok">Demo route complete ✅</p>}
       </section>
 
       <div className="parents-grid">

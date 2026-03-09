@@ -1,5 +1,8 @@
-import { type CSSProperties, useMemo } from 'react';
+import { type CSSProperties, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getClueDescription, readCluesCollection } from '../cluesCollection';
+import { isDemoModeEnabled } from '../demoMode';
+import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 
 type ClueMeta = {
   title: string;
@@ -79,6 +82,9 @@ function formatDate(value: string): string {
 }
 
 export function CluesPage() {
+  const navigate = useNavigate();
+  const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
+  const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
   const clues = useMemo(() => readCluesCollection(), []);
   const items = useMemo(
     () => Object.entries(clues).sort((a, b) => b[1].count - a[1].count),
@@ -99,6 +105,23 @@ export function CluesPage() {
           Эта страница помогает видеть учебный прогресс и повторять навыки перед реальными ситуациями.
         </p>
       </header>
+
+      {demoRouteActive && demoRouteStep === 'clues' && (
+        <section className="parents-report-panel" aria-label="Demo route guidance">
+          <h3>Demo route</h3>
+          <p className="section-meta">Step 3/5: Покажите собранные улики и объясните, как растет цифровая грамотность.</p>
+          <button
+            type="button"
+            onClick={() => {
+              updateDemoRouteStep('parents');
+              setDemoRouteStep('parents');
+              navigate('/parents');
+            }}
+          >
+            Next: parents dashboard
+          </button>
+        </section>
+      )}
 
       <section className="clues-summary" aria-label="Прогресс по уликам">
         <article className="summary-metric">

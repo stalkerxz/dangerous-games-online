@@ -90,3 +90,37 @@ export function recordSceneClues(scene: StoryScene, choice: SceneChoice): CluesC
   localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(collection));
   return collection;
 }
+
+
+export function seedDemoClues(): CluesCollection {
+  const now = nowIso();
+  const demo: CluesCollection = {
+    urgency: {
+      count: 4,
+      last_seen: now,
+      examples: ['Срочно скинь код из СМС', 'У тебя 30 секунд на решение']
+    },
+    account: {
+      count: 3,
+      last_seen: now,
+      examples: ['Код из СМС — это ключ от аккаунта', 'Проверь ссылку через второй канал']
+    },
+    privacy: {
+      count: 2,
+      last_seen: now,
+      examples: ['Не отправляй геолокацию незнакомым', 'Личные данные держи в секрете']
+    },
+    evidence: {
+      count: 2,
+      last_seen: now,
+      examples: ['Сделай скриншот переписки', 'Сохрани вложение как доказательство']
+    }
+  };
+
+  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(demo));
+  return demo;
+}
+
+export function clearCluesCollection() {
+  localStorage.removeItem(CLUES_COLLECTION_KEY);
+}
