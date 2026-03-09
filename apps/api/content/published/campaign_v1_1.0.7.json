@@ -2,11 +2,11 @@
   "id": "campaign_v1",
   "type": "campaign",
   "version": "1.0.7",
-  "title": "Кампания V1 — Глава 1: Чаты",
+  "title": "Кампания «Безопасная школа онлайн»",
   "scenes": [
     {
       "id": "chats-sms-code",
-      "title": "Чаты: Код из СМС для входа",
+      "title": "Школьный аккаунт: код из СМС",
       "tags": [
         "urgency",
         "account",
@@ -46,7 +46,7 @@
           "chat": [
             {
               "speaker": "Псевдо-саппорт",
-              "text": "Окно подтверждения горит, нужен твой OTP-код немедленно.",
+              "text": "Окно подтверждения активно, срочно нужен код подтверждения.",
               "delay_ms": 700
             },
             {
@@ -105,7 +105,7 @@
     },
     {
       "id": "chats-prize-link",
-      "title": "Чаты: Розыгрыш по ссылке",
+      "title": "Школьный чат: «приз по ссылке»",
       "tags": [
         "urgency",
         "antifake"
@@ -141,7 +141,7 @@
           "chat": [
             {
               "speaker": "Бот",
-              "text": "Flash giveaway, claim now via link."
+              "text": "Молниеносный розыгрыш, переходи по ссылке прямо сейчас."
             },
             {
               "speaker": "Ты",
@@ -196,7 +196,7 @@
     },
     {
       "id": "chats-file-mod",
-      "title": "Чаты: Файл/мод от незнакомца",
+      "title": "Игровой чат: файл от незнакомца",
       "tags": [
         "urgency",
         "antifake",
@@ -235,12 +235,12 @@
           "chat": [
             {
               "speaker": "Игрок",
-              "text": "Install this mod before patch drop.",
+              "text": "Установи этот мод до выхода обновления.",
               "delay_ms": 700
             },
             {
               "speaker": "Ты",
-              "text": "Untrusted binaries are a red flag; I will not run it.",
+              "text": "Непроверенные файлы опасны, запускать не буду.",
               "delay_ms": 900
             }
           ]
@@ -293,7 +293,7 @@
     },
     {
       "id": "chats-pressure-admin",
-      "title": "Чаты: Срочное давление от «админа»",
+      "title": "Школьный чат: «срочно от администратора»",
       "tags": [
         "urgency",
         "antifake"
@@ -330,13 +330,13 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "\"Admin\"",
-              "text": "Compliance check now or account suspension.",
+              "speaker": "«Администратор»",
+              "text": "Срочная проверка, иначе аккаунт заблокируют.",
               "delay_ms": 700
             },
             {
               "speaker": "Ты",
-              "text": "I will verify this request via official support first.",
+              "text": "Сначала проверю запрос через официальный канал поддержки.",
               "delay_ms": 900
             }
           ]
@@ -388,7 +388,7 @@
     },
     {
       "id": "chats-geolocation",
-      "title": "Чаты: Просьба скинуть геолокацию",
+      "title": "Классный чат: просьба отправить геолокацию",
       "tags": [
         "privacy",
         "urgency"
@@ -424,11 +424,11 @@
           "chat": [
             {
               "speaker": "Контакт",
-              "text": "Drop live location now."
+              "text": "Срочно отправь геолокацию в реальном времени."
             },
             {
               "speaker": "Ты",
-              "text": "Location sharing is private; request denied."
+              "text": "Геолокация — личные данные, отправлять не буду."
             }
           ]
         }
@@ -482,7 +482,7 @@
     },
     {
       "id": "chats-second-channel",
-      "title": "Чаты: Проверка через второй канал",
+      "title": "Проверка через классного руководителя",
       "tags": [
         "antifake",
         "urgency"
@@ -517,12 +517,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "\"Friend\"",
-              "text": "Need item transfer immediately."
+              "speaker": "«Друг»",
+              "text": "Срочно передай предмет прямо сейчас."
             },
             {
               "speaker": "Ты",
-              "text": "Identity must be confirmed via second channel first."
+              "text": "Сначала подтвержу личность через второй канал связи."
             }
           ]
         }
@@ -573,7 +573,7 @@
     },
     {
       "id": "chats-bullying-proof",
-      "title": "Чаты: Травля и фиксация доказательств",
+      "title": "Травля в чате класса: как зафиксировать",
       "tags": [
         "evidence",
         "bullying_witness"
@@ -608,12 +608,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "Voice chat",
-              "text": "Harassment escalates against a newcomer."
+              "speaker": "Голосовой чат",
+              "text": "В чате усиливается травля новичка."
             },
             {
               "speaker": "Ты",
-              "text": "I will intervene, preserve evidence, and report."
+              "text": "Вмешаюсь безопасно, сохраню доказательства и сообщу взрослому."
             }
           ]
         }
@@ -667,7 +667,7 @@
     },
     {
       "id": "chats-evidence-trade",
-      "title": "Чаты: Шантаж скриншотом",
+      "title": "Школьный чат: шантаж скриншотом",
       "tags": [
         "evidence",
         "privacy",
@@ -714,8 +714,8 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "Attacker",
-              "text": "Credentials now, or I leak this screenshot.",
+              "speaker": "Агрессор",
+              "text": "Данные входа сейчас, иначе публикую скриншот.",
               "delay_ms": 900,
               "attachment": {
                 "type": "image",
@@ -725,7 +725,7 @@
             },
             {
               "speaker": "Ты",
-              "text": "I will preserve this evidence and escalate the report."
+              "text": "Сохраню доказательства и передам сообщение классному руководителю."
             }
           ]
         }
@@ -779,7 +779,7 @@
     },
     {
       "id": "chats-evidence-fake-support",
-      "title": "Чаты: Фейковая техподдержка",
+      "title": "Школьный аккаунт: фейковая поддержка",
       "tags": [
         "evidence",
         "antifake",
@@ -791,7 +791,7 @@
       ],
       "chat": [
         {
-          "speaker": "\"Support\"",
+          "speaker": "«Поддержка»",
           "text": "Срочная проверка: пришлите логин и скрин платежа."
         },
         {
@@ -815,12 +815,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "\"Support\"",
-              "text": "Urgent verification required, send credentials."
+              "speaker": "«Поддержка»",
+              "text": "Нужна срочная проверка, отправьте данные входа."
             },
             {
               "speaker": "Ты",
-              "text": "I will verify the support domain before responding."
+              "text": "Проверю адрес поддержки и только потом отвечу."
             }
           ]
         }
@@ -910,12 +910,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "System",
-              "text": "Suspicious login activity detected after link click."
+              "speaker": "Система",
+              "text": "После перехода по ссылке обнаружен подозрительный вход."
             },
             {
               "speaker": "Ты",
-              "text": "Immediate credential reset and 2FA are required."
+              "text": "Нужно срочно сменить пароль и включить двухфакторную защиту."
             }
           ]
         }
@@ -1002,12 +1002,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "System",
-              "text": "Post-install behavior indicates potential malware."
+              "speaker": "Система",
+              "text": "После установки замечено поведение, похожее на вредоносную программу."
             },
             {
               "speaker": "Ты",
-              "text": "Removing the mod and rotating credentials now."
+              "text": "Удаляю мод и меняю данные входа."
             }
           ]
         }
@@ -1059,7 +1059,7 @@
     },
     {
       "id": "chats-final-checklist",
-      "title": "Чаты: Финальный чек-лист",
+      "title": "Чат класса: финальный чек-лист",
       "tags": [
         "urgency",
         "antifake",
@@ -1095,12 +1095,12 @@
         "11-14": {
           "chat": [
             {
-              "speaker": "Mentor",
-              "text": "Summarize your anti-scam checklist."
+              "speaker": "Наставник",
+              "text": "Кратко перечисли свой чек-лист защиты от мошенничества."
             },
             {
               "speaker": "Ты",
-              "text": "Verify source, protect secrets, preserve evidence, use second-channel checks."
+              "text": "Проверять источник, беречь личные данные, сохранять доказательства и использовать второй канал связи."
             }
           ]
         }
@@ -1152,7 +1152,7 @@
     },
     {
       "id": "social-private-profile",
-      "title": "Соцсети: Открытый профиль",
+      "title": "Соцсети: открытый школьный профиль",
       "tags": [
         "privacy",
         "account"
@@ -1243,7 +1243,7 @@
     },
     {
       "id": "social-fake-giveaway",
-      "title": "Соцсети: Фейковый розыгрыш блогера",
+      "title": "Соцсети: фейковая олимпиада с «призами»",
       "tags": [
         "antifake",
         "urgency"
@@ -1335,7 +1335,7 @@
     },
     {
       "id": "social-story-location",
-      "title": "Соцсети: Геометка в сторис",
+      "title": "Соцсети: геометка по дороге из школы",
       "tags": [
         "privacy",
         "communication"
@@ -1426,7 +1426,7 @@
     },
     {
       "id": "social-password-reset-dm",
-      "title": "Соцсети: \"Техподдержка\" в личке",
+      "title": "Школьный аккаунт: «поддержка» в личке",
       "tags": [
         "account",
         "antifake"
@@ -1517,7 +1517,7 @@
     },
     {
       "id": "social-comment-provocation",
-      "title": "Соцсети: Провокация в комментариях",
+      "title": "Соцсети: провокация под постом класса",
       "tags": [
         "communication",
         "antibullying"
@@ -1608,7 +1608,7 @@
     },
     {
       "id": "social-photo-metadata",
-      "title": "Соцсети: Фото с лишними деталями",
+      "title": "Соцсети: фото с данными школы",
       "tags": [
         "privacy",
         "evidence"
@@ -1702,7 +1702,7 @@
     },
     {
       "id": "social-group-invite-link",
-      "title": "Соцсети: Ссылка в закрытую группу",
+      "title": "Соцсети: ссылка в «закрытый» школьный канал",
       "tags": [
         "antifake",
         "account",
@@ -1796,7 +1796,7 @@
     },
     {
       "id": "social-final-safe-feed",
-      "title": "Соцсети: Финальный чек-лист",
+      "title": "Соцсети: финальный чек-лист безопасности",
       "tags": [
         "communication",
         "privacy",
@@ -1889,7 +1889,7 @@
     },
     {
       "id": "games-voice-chat-scam",
-      "title": "Онлайн-игры: Мошенник в войс-чате",
+      "title": "Игровой чат: мошенник в голосовом канале",
       "tags": [
         "communication",
         "antifake",
@@ -1983,7 +1983,7 @@
     },
     {
       "id": "games-free-currency",
-      "title": "Онлайн-игры: Генератор валюты",
+      "title": "Игровой чат: «бесплатная валюта»",
       "tags": [
         "antifake",
         "account"
@@ -2074,7 +2074,7 @@
     },
     {
       "id": "games-stream-snipe",
-      "title": "Онлайн-игры: Давление на стриме",
+      "title": "Игровой чат: давление во время стрима",
       "tags": [
         "communication",
         "antibullying"
@@ -2165,7 +2165,7 @@
     },
     {
       "id": "games-mod-market",
-      "title": "Онлайн-игры: Подозрительный маркет",
+      "title": "Игровой чат: подозрительный маркет",
       "tags": [
         "antifake",
         "evidence",
@@ -2262,7 +2262,7 @@
     },
     {
       "id": "games-team-chat-leak",
-      "title": "Онлайн-игры: Утечка тимчата",
+      "title": "Игровой чат: утечка командной переписки",
       "tags": [
         "privacy",
         "communication"
@@ -2353,7 +2353,7 @@
     },
     {
       "id": "games-account-rent",
-      "title": "Онлайн-игры: \"Аренда\" аккаунта",
+      "title": "Игры: «аренда» школьного аккаунта",
       "tags": [
         "account",
         "urgency",
@@ -2446,7 +2446,7 @@
     },
     {
       "id": "games-clan-conflict",
-      "title": "Онлайн-игры: Конфликт в клане",
+      "title": "Игровой чат: конфликт в команде",
       "tags": [
         "communication",
         "antibullying",
@@ -2539,7 +2539,7 @@
     },
     {
       "id": "games-final-fair-play",
-      "title": "Онлайн-игры: Финал честной игры",
+      "title": "Игры: финал честной и безопасной игры",
       "tags": [
         "communication",
         "account",
@@ -2632,7 +2632,7 @@
     },
     {
       "id": "fakes-school-cancel",
-      "title": "Фейки: \"Отмена занятий\" из чата",
+      "title": "Фейк: «отмена занятий» в школьном чате",
       "tags": [
         "antifake",
         "urgency"
@@ -2723,7 +2723,7 @@
     },
     {
       "id": "fakes-celebrity-charity",
-      "title": "Фейки: Поддельный благотворительный сбор",
+      "title": "Фейк: поддельный школьный сбор",
       "tags": [
         "antifake",
         "evidence"
@@ -2817,7 +2817,7 @@
     },
     {
       "id": "fakes-audio-deepfake",
-      "title": "Фейки: Голосовое \"от учителя\"",
+      "title": "Фейк: голосовое «от классного руководителя»",
       "tags": [
         "antifake",
         "communication"
@@ -2908,7 +2908,7 @@
     },
     {
       "id": "fakes-screenshot-edited",
-      "title": "Фейки: Поддельный скриншот",
+      "title": "Фейк: отредактированный скрин из дневника",
       "tags": [
         "antifake",
         "evidence"
@@ -2999,7 +2999,7 @@
     },
     {
       "id": "fakes-health-tip",
-      "title": "Фейки: \"Лайфхак\" про здоровье",
+      "title": "Фейк: опасный «лайфхак» для школьников",
       "tags": [
         "antifake",
         "urgency",
@@ -3092,7 +3092,7 @@
     },
     {
       "id": "fakes-support-clone-site",
-      "title": "Фейки: Клон сайта поддержки",
+      "title": "Фейк: клон сайта электронного дневника",
       "tags": [
         "antifake",
         "account",
@@ -3186,7 +3186,7 @@
     },
     {
       "id": "fakes-news-bot",
-      "title": "Фейки: Новостной бот с паникой",
+      "title": "Фейк: новостной бот с паникой для родителей",
       "tags": [
         "antifake",
         "urgency"
@@ -3277,7 +3277,7 @@
     },
     {
       "id": "fakes-final-verification",
-      "title": "Фейки: Финал проверки фактов",
+      "title": "Фейки: финал проверки информации",
       "tags": [
         "antifake",
         "communication",
@@ -3370,7 +3370,7 @@
     },
     {
       "id": "cyberbullying-class-chat-meme",
-      "title": "Кибербуллинг: Мем про одноклассника",
+      "title": "Травля: мем про одноклассника в чате",
       "tags": [
         "bullying_witness",
         "antibullying",
@@ -3463,7 +3463,7 @@
     },
     {
       "id": "cyberbullying-fake-account",
-      "title": "Кибербуллинг: Фейковый аккаунт для насмешек",
+      "title": "Травля: фейковый профиль ученика",
       "tags": [
         "antifake",
         "bullying_witness",
@@ -3559,7 +3559,7 @@
     },
     {
       "id": "cyberbullying-game-harassment",
-      "title": "Кибербуллинг: Оскорбления в игровом чате",
+      "title": "Травля: оскорбления в игровом чате",
       "tags": [
         "communication",
         "antibullying"
@@ -3650,7 +3650,7 @@
     },
     {
       "id": "cyberbullying-private-leak",
-      "title": "Кибербуллинг: Слив личной переписки",
+      "title": "Травля: слив личной переписки",
       "tags": [
         "privacy",
         "evidence",
@@ -3749,7 +3749,7 @@
     },
     {
       "id": "cyberbullying-anonymous-form",
-      "title": "Кибербуллинг: Анонимная форма с оскорблениями",
+      "title": "Травля: анонимная форма с оскорблениями",
       "tags": [
         "antifake",
         "evidence",
@@ -3845,7 +3845,7 @@
     },
     {
       "id": "cyberbullying-group-exclusion",
-      "title": "Кибербуллинг: Исключение из группового чата",
+      "title": "Травля: исключение из чата класса",
       "tags": [
         "bullying_witness",
         "communication",
@@ -3938,7 +3938,7 @@
     },
     {
       "id": "cyberbullying-night-messages",
-      "title": "Кибербуллинг: Ночные сообщения с угрозами",
+      "title": "Травля: ночные сообщения с угрозами",
       "tags": [
         "urgency",
         "evidence",
@@ -4034,7 +4034,7 @@
     },
     {
       "id": "cyberbullying-public-shame",
-      "title": "Кибербуллинг: Публичное унижение в канале",
+      "title": "Травля: публичное унижение в школьном канале",
       "tags": [
         "communication",
         "antibullying",
@@ -4127,7 +4127,7 @@
     },
     {
       "id": "cyberbullying-evidence-folder",
-      "title": "Кибербуллинг: Папка доказательств",
+      "title": "Травля: папка доказательств",
       "tags": [
         "evidence",
         "privacy",
@@ -4226,7 +4226,7 @@
     },
     {
       "id": "cyberbullying-final-support-plan",
-      "title": "Кибербуллинг: Финальный план поддержки",
+      "title": "Травля: финальный план поддержки",
       "tags": [
         "antibullying",
         "communication",
@@ -4321,7 +4321,7 @@
   "chapters": [
     {
       "id": "chapter-chats",
-      "title": "Чаты",
+      "title": "Школьные чаты и мессенджеры",
       "scene_ids": [
         "chats-sms-code",
         "chats-prize-link"
@@ -4330,7 +4330,7 @@
     },
     {
       "id": "chapter-social",
-      "title": "Соцсети",
+      "title": "Соцсети и школьный аккаунт",
       "scene_ids": [
         "chats-file-mod",
         "chats-pressure-admin",
@@ -4347,7 +4347,7 @@
     },
     {
       "id": "chapter-games",
-      "title": "Онлайн-игры",
+      "title": "Игровые чаты и командная игра",
       "scene_ids": [
         "chats-geolocation",
         "chats-second-channel",
@@ -4364,7 +4364,7 @@
     },
     {
       "id": "chapter-fakes",
-      "title": "Фейки",
+      "title": "Школьные фейки и срочные объявления",
       "scene_ids": [
         "chats-evidence-trade",
         "chats-evidence-fake-support",
@@ -4381,7 +4381,7 @@
     },
     {
       "id": "chapter-cyberbullying",
-      "title": "Кибербуллинг",
+      "title": "Травля в чатах и поддержка",
       "scene_ids": [
         "chats-bullying-proof",
         "cyberbullying-class-chat-meme",

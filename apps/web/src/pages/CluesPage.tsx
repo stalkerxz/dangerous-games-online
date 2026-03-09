@@ -100,7 +100,7 @@ export function CluesPage() {
     <section className="clues-page">
       <header className="clues-hero">
         <p className="clues-hero-kicker">Коллекция наблюдений</p>
-        <h2>Улики риска и цифровой грамотности</h2>
+        <h2>Сигналы риска и цифровой грамотности</h2>
         <p className="clues-hero-subtitle">
           Здесь собраны типы риск-сигналов, которые ребёнок уже встречал в сюжетах.
           Эта страница помогает видеть учебный прогресс и повторять навыки перед реальными ситуациями.
@@ -108,9 +108,9 @@ export function CluesPage() {
       </header>
 
       {demoRouteActive && demoRouteStep === 'clues' && (
-        <section className="parents-report-panel" aria-label="Demo route guidance">
-          <h3>Demo route</h3>
-          <p className="section-meta">Step 3/5: Покажите собранные улики и объясните, как растет цифровая грамотность.</p>
+        <section className="parents-report-panel" aria-label="Маршрут демо-показа">
+          <h3>Маршрут демонстрации</h3>
+          <p className="section-meta">Шаг 3/5: Покажите собранные сигналы риска и объясните, как измеряется цифровая грамотность.</p>
           <button
             type="button"
             onClick={() => {
@@ -119,7 +119,7 @@ export function CluesPage() {
               navigate('/parents');
             }}
           >
-            Next: parents dashboard
+            Далее: панель для родителей и педагогов
           </button>
         </section>
       )}

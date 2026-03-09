@@ -1123,7 +1123,7 @@ button:focus-visible,
   opacity: 0.82;
 }
 
-.layout-presentation .parents-report-panel[aria-label="Demo route guidance"] {
+.layout-presentation .parents-report-panel[aria-label="Маршрут демо-показа"] {
   display: none;
 }
 

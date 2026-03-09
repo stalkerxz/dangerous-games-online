@@ -51,7 +51,7 @@ export function WeeklyPage() {
       <header className="page-hero page-hero-weekly">
         <p className="page-hero-kicker">Еженедельный ритм</p>
         <h2>Еженедельные миссии</h2>
-        <p className="section-meta">Короткие сценарии для регулярной практики и стабильного роста навыков.</p>
+        <p className="section-meta">Короткие сценарии для классных часов и домашней практики: навык закрепляется небольшими шагами каждую неделю.</p>
       </header>
 
       {!activeWeekly && nextWeekly && (
@@ -63,7 +63,7 @@ export function WeeklyPage() {
       )}
 
       {!activeWeekly && !nextWeekly && (
-        <section className="empty-state" aria-label="Пустое состояние weekly">
+        <section className="empty-state" aria-label="Пустое состояние недели">
           <div className="empty-art" aria-hidden>🛰️</div>
           <h3>Пока нет активной еженедельной миссии</h3>
           <p>Проверьте позже — новые миссии появятся в следующем обновлении контента.</p>
@@ -104,13 +104,13 @@ export function WeeklyPage() {
 
       {error && (
         <p>
-          Синхронизация weekly не удалась: {error}{' '}
+          Не удалось обновить еженедельные задания: {error}{' '}
           <button type="button" onClick={() => void retrySync()} disabled={loading}>Повторить</button>
         </p>
       )}
 
-      {loading && <p>Загружаем архив weekly…</p>}
-      {!loading && sortedWeekly.length === 0 && <p>Локально пока нет загруженных weekly-паков.</p>}
+      {loading && <p>Загружаем архив еженедельных заданий…</p>}
+      {!loading && sortedWeekly.length === 0 && <p>Локально пока нет загруженных материалов недели.</p>}
       {!loading && sortedWeekly.length > 0 && (
         <ul>
           {sortedWeekly.map((pack) => (

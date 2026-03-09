@@ -115,16 +115,16 @@ export function CampaignPage() {
   };
 
   if (loading) {
-    return <section><h2>Campaign</h2><p>Syncing content packs…</p></section>;
+    return <section><h2>Кампания</h2><p>Обновляем учебные материалы…</p></section>;
   }
 
   if (error || !campaign) {
     return (
       <section>
-        <h2>Campaign</h2>
-        <p>Campaign unavailable offline. Connect once to cache packs.</p>
+        <h2>Кампания</h2>
+        <p>Кампания пока недоступна офлайн. Подключитесь к сети один раз, чтобы сохранить материалы.</p>
         {error && <p>{error}</p>}
-        <button type="button" onClick={() => void retrySync()}>Retry sync</button>
+        <button type="button" onClick={() => void retrySync()}>Повторить синхронизацию</button>
       </section>
     );
   }
@@ -163,7 +163,7 @@ export function CampaignPage() {
     }
 
     setSummaryChapterId(null);
-    setActiveFlow({ kind: 'chapter', chapter, scenes: [scene], title: 'Demo messenger scene' });
+    setActiveFlow({ kind: 'chapter', chapter, scenes: [scene], title: 'Демо-сцена школьного чата' });
   };
 
   const openRepeatWeakSkill = (chapter: CampaignChapter) => {
@@ -255,10 +255,10 @@ export function CampaignPage() {
   return (
     <section className="campaign-page">
       <header className="campaign-hero">
-        <p className="campaign-hero-kicker">Campaign</p>
+        <p className="campaign-hero-kicker">Учебная кампания</p>
         <h2>{campaign.title}</h2>
         <p className="campaign-hero-subtitle">
-          Пройди «город рисков»: от быстрых диалогов до финальных кейсов с разбором и квизом.
+          Пройди «карту школьных ситуаций»: от чатов класса до финальных кейсов с разбором. Формируются навыки проверки информации, защиты аккаунта и безопасного общения.
         </p>
         <div className="campaign-hero-actions">
           <button
@@ -292,8 +292,8 @@ export function CampaignPage() {
       </header>
 
       {demoRouteActive && (
-        <section className="parents-report-panel" aria-label="Demo route guidance">
-          <h3>Demo route</h3>
+        <section className="parents-report-panel" aria-label="Маршрут демо-показа">
+          <h3>Маршрут демонстрации</h3>
           {demoRouteStep === 'campaign' && (
             <>
               <p className="section-meta">Шаг 1/5: Покажите титульный блок кампании и карту города рисков.</p>
@@ -304,14 +304,14 @@ export function CampaignPage() {
                   setDemoRouteStep('messenger');
                 }}
               >
-Далее: сцена в чате
+Далее: сцена школьного чата
               </button>
             </>
           )}
           {demoRouteStep === 'messenger' && (
             <>
               <p className="section-meta">Шаг 2/5: Запустите одну чат-сцену с вложением.</p>
-              <button type="button" onClick={openDemoMessengerScene}>Запустить демо-сцену чата</button>
+              <button type="button" onClick={openDemoMessengerScene}>Запустить демо-сцену</button>
             </>
           )}
         </section>
@@ -322,7 +322,7 @@ export function CampaignPage() {
       {chapters.length > 0 && chapters.every((chapter) => Boolean(modeProgress.completedFinals[chapter.id])) && (
         <section className="completion-state" aria-label="Кампания завершена">
           <h3>Кампания полностью завершена</h3>
-          <p>Все финальные кейсы пройдены. Результат готов для демонстрации жюри.</p>
+          <p>Все финальные кейсы пройдены. Результат готов для демонстрации жюри: видно динамику решений и освоенные навыки.</p>
         </section>
       )}
 

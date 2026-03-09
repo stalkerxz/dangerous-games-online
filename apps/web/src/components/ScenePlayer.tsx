@@ -341,7 +341,7 @@ export function ScenePlayer({
       <h3 className="scene-title">{title}</h3>
       {showSceneProgress && (
         <>
-          <p className="scene-progress">Progress: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>
+          <p className="scene-progress">Прогресс: {Math.min(sceneIndex + 1, scenes.length)}/{scenes.length}</p>
           <div className="progress" aria-hidden="true">
             <div
               className="progress-bar"
@@ -361,8 +361,8 @@ export function ScenePlayer({
                 <span>{renderHighlightedText(line.text, highlightTerms)}</span>
               </p>
               {line.attachment && (
-                <div aria-label={`Attachment: ${line.attachment.label}`} className="attachment-card" role="group">
-                  <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Image' : '📎 File'}</span>
+                <div aria-label={`Вложение: ${line.attachment.label}`} className="attachment-card" role="group">
+                  <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Изображение' : '📎 Файл'}</span>
                   <p>{line.attachment.label}</p>
                   {line.attachment.type === 'image' && resolvedAttachmentSrc && (
                     <img alt={line.attachment.label} className="attachment-preview" loading="lazy" src={resolvedAttachmentSrc} />
@@ -374,7 +374,7 @@ export function ScenePlayer({
         })}
         {typingMessage && (
           <li className="typing-row" key={`${typingMessage.speaker}-typing`}>
-            <p aria-label={`${typingMessage.speaker} is typing`} className="typing-bubble" role="status">
+            <p aria-label={`${typingMessage.speaker} печатает`} className="typing-bubble" role="status">
               <span className="chat-speaker">{typingMessage.speaker}</span>
               <span>печатает<span aria-hidden="true">…</span></span>
             </p>
@@ -397,21 +397,21 @@ export function ScenePlayer({
 
       {selectedChoice && (
         <div className="debrief-layout">
-          <section className="debrief" aria-label="Debrief">
-            <h4>Debrief</h4>
+          <section className="debrief" aria-label="Разбор решения">
+            <h4>Разбор решения</h4>
             <p>{selectedChoice.debrief}</p>
-            <div className="chip-row" role="list" aria-label="Scene clues and risk status">
+            <div className="chip-row" role="list" aria-label="Улики сцены и оценка решения">
               {(scene.tags ?? []).slice(0, 4).map((tag) => (
                 <span className="clue-chip" key={tag} role="listitem">#{tag}</span>
               ))}
               <span className={`status-pill ${classifyRisk(selectedChoice)}`} role="listitem">
-                {classifyRisk(selectedChoice)} choice
+                {classifyRisk(selectedChoice) === 'safe' ? 'Безопасный выбор' : classifyRisk(selectedChoice) === 'risky' ? 'Рискованный выбор' : 'Нейтральный выбор'}
               </span>
             </div>
           </section>
 
-          <section className="quiz-card" aria-label="Quiz">
-            <h5>Quiz</h5>
+          <section className="quiz-card" aria-label="Проверка понимания">
+            <h5>Проверка понимания</h5>
             <p>{selectedChoice.quiz.question}</p>
             <ol className="quiz-options">
               {selectedChoice.quiz.options.map((option, index) => (
@@ -424,7 +424,7 @@ export function ScenePlayer({
               ))}
             </ol>
             <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null}>
-              {sceneIndex < scenes.length - 1 ? 'Next scene' : isCompleted ? 'Completed' : 'Finish mission'}
+              {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
           </section>
         </div>
