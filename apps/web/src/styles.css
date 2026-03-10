@@ -703,8 +703,11 @@ button[disabled] {
 }
 
 .chat-row-system,
-.chat-row-other,
 .typing-row {
+  justify-content: center;
+}
+
+.chat-row-other {
   justify-content: flex-start;
 }
 
@@ -745,7 +748,10 @@ button[disabled] {
   justify-items: end;
 }
 
-.chat-content-system,
+.chat-content-system {
+  justify-items: center;
+}
+
 .chat-content-other {
   justify-items: start;
 }
@@ -764,11 +770,6 @@ button[disabled] {
 .task-option-correct {
   background: linear-gradient(180deg, #105845 0%, #0b4b3f 100%);
   border-color: #2d9f7e;
-}
-
-.task-option-correct-outline {
-  background: linear-gradient(180deg, #18354b 0%, #152d40 100%);
-  border-color: #46c498;
 }
 
 .task-option-incorrect {

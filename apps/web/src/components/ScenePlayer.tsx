@@ -99,11 +99,25 @@ function renderHighlightedText(text: string, terms: string[]): ReactNode {
 }
 
 function classifySpeaker(speaker: string): 'player' | 'system' | 'other' {
-  const normalized = speaker.toLocaleLowerCase('ru-RU');
-  if (normalized.includes('ты') || normalized.includes('игрок')) {
+  const normalized = speaker.toLocaleLowerCase('ru-RU').trim();
+  if (
+    normalized.includes('ты')
+    || normalized.includes('игрок')
+    || normalized === 'я'
+    || normalized.includes('you')
+    || normalized.includes('me')
+    || normalized.includes('ученик')
+  ) {
     return 'player';
   }
-  if (normalized.includes('бот') || normalized.includes('админ') || normalized.includes('support') || normalized.includes('саппорт')) {
+  if (
+    normalized.includes('бот')
+    || normalized.includes('админ')
+    || normalized.includes('support')
+    || normalized.includes('саппорт')
+    || normalized.includes('система')
+    || normalized.includes('модератор')
+  ) {
     return 'system';
   }
   return 'other';
@@ -654,9 +668,7 @@ export function ScenePlayer({
                     ? 'task-option-correct'
                     : isSelected && !fragment.correct
                       ? 'task-option-incorrect'
-                      : fragment.correct
-                        ? 'task-option-correct-outline'
-                        : 'task-option-disabled';
+                      : 'task-option-disabled';
 
                 return (
                   <button
