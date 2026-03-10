@@ -996,6 +996,33 @@ button[disabled] {
   font-size: var(--text-base);
 }
 
+
+.lesson-mode-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: var(--space-3);
+}
+
+.lesson-mode-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(9, 16, 31, 0.62);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lesson-mode-card h4 {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.button-secondary {
+  border-color: var(--color-border-strong);
+  background: rgba(18, 29, 48, 0.9);
+}
+
 .quick-picks-grid {
   display: grid;
   gap: var(--space-3);
