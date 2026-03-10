@@ -500,6 +500,7 @@ export function ScenePlayer({
   };
 
   const isMiniTaskRequired = Boolean(scene.miniTask);
+  const isNextSceneUnlocked = selectedQuizOption !== null && (!isMiniTaskRequired || miniTaskPassed);
   const miniTaskTone = miniTaskPassed ? 'task-success' : miniTaskFeedback ? 'task-warning' : 'task-neutral';
   const findClueTask = scene.miniTask?.type === 'find_clue' ? scene.miniTask : null;
   const buildTaskFragments = scene.miniTask?.type === 'build_safe_response' ? scene.miniTask.fragments : [];
@@ -736,33 +737,34 @@ export function ScenePlayer({
             <p>{selectedChoice.quiz.question}</p>
             <ol className="quiz-options">
               {selectedChoice.quiz.options.map((option, index) => {
-                const quizClass = selectedQuizOption === null
+                const isAnswered = selectedQuizOption !== null;
+                const isSelected = selectedQuizOption === index;
+                const isCorrect = index === selectedChoice.quiz.answerIndex;
+                const quizClass = !isAnswered
                   ? 'task-chip'
-                  : index === selectedQuizOption && index === selectedChoice.quiz.answerIndex
+                  : isCorrect
                     ? 'task-option-correct'
-                    : index === selectedQuizOption
+                    : isSelected
                       ? 'task-option-incorrect'
-                      : index === selectedChoice.quiz.answerIndex
-                        ? 'task-option-correct-outline'
-                        : 'task-option-disabled';
+                      : 'task-option-disabled';
 
                 return (
-                  <li key={option}>
-                    <button className={`choice-button ${quizClass}`} type="button" onClick={() => onAnswerQuiz(index)} disabled={selectedQuizOption !== null}>
+                  <li key={`${option}-${index}`}>
+                    <button className={`choice-button ${quizClass}`} type="button" onClick={() => onAnswerQuiz(index)} disabled={isAnswered}>
                       {option}
                     </button>
+                    {isSelected && isAnswered && (
+                      <p className="section-meta quiz-option-feedback">
+                        {isCorrect
+                          ? '✅ Верно. Отлично, ключевое правило усвоено.'
+                          : `❌ Неверно. Правильный ответ: ${selectedChoice.quiz.options[selectedChoice.quiz.answerIndex]}`}
+                      </p>
+                    )}
                   </li>
                 );
               })}
             </ol>
-            {selectedQuizOption !== null && (
-              <p className="section-meta">
-                {selectedQuizOption === selectedChoice.quiz.answerIndex
-                  ? '✅ Верно. Отлично, ключевое правило усвоено.'
-                  : `❌ Неверно. Правильный ответ: ${selectedChoice.quiz.options[selectedChoice.quiz.answerIndex]}`}
-              </p>
-            )}
-            <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null || (isMiniTaskRequired && !miniTaskPassed)}>
+            <button className="choice-button" type="button" onClick={nextScene} disabled={!isNextSceneUnlocked}>
               {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
             {isMiniTaskRequired && !miniTaskPassed && <p className="section-meta">Сначала заверши мини-задание этой сцены.</p>}
