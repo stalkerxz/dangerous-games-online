@@ -230,6 +230,44 @@ export function ParentsPage() {
   const totalChoices = safeChoices + riskyChoices;
   const safePercent = totalChoices > 0 ? Math.round((safeChoices / totalChoices) * 100) : null;
 
+
+  const mergedSkillScores = useMemo(() => {
+    const tagSafeCounts = campaignKpi?.overall.tag_safe_counts ?? {};
+    const tagToSkill: Record<string, SkillCard['id']> = {
+      privacy: 'privacy',
+      account: 'account',
+      urgency: 'antifake',
+      antifake: 'antifake',
+      communication: 'communication',
+      antibullying: 'antibullying',
+      bullying_witness: 'antibullying',
+      evidence: 'antibullying'
+    };
+
+    const fromCampaign: Record<SkillCard['id'], number> = {
+      privacy: 0,
+      account: 0,
+      antifake: 0,
+      communication: 0,
+      antibullying: 0
+    };
+
+    for (const [tag, count] of Object.entries(tagSafeCounts)) {
+      const skillId = tagToSkill[tag];
+      if (skillId) {
+        fromCampaign[skillId] += count;
+      }
+    }
+
+    return {
+      privacy: (progress.skills.privacy ?? 0) + fromCampaign.privacy,
+      account: (progress.skills.account ?? 0) + fromCampaign.account,
+      antifake: (progress.skills.antifake ?? 0) + fromCampaign.antifake,
+      communication: (progress.skills.communication ?? 0) + fromCampaign.communication,
+      antibullying: (progress.skills.antibullying ?? 0) + fromCampaign.antibullying
+    };
+  }, [campaignKpi, progress.skills]);
+
   const skillRanking = useMemo(() => {
     const tagTotals = campaignKpi?.overall.tag_totals ?? {};
     const tagSafeCounts = campaignKpi?.overall.tag_safe_counts ?? {};
@@ -580,7 +618,7 @@ export function ParentsPage() {
 
       <div className="parents-grid">
         {skillCards.map((skill) => {
-          const score = progress.skills[skill.id] ?? 0;
+          const score = mergedSkillScores[skill.id] ?? 0;
           const visualPercent = Math.min(100, score * 10);
 
           return (

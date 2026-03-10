@@ -26,6 +26,22 @@ const HIGHLIGHT_TERMS: Record<string, string[]> = {
   antifake: ['админ', 'поддержка', 'проверка']
 };
 
+
+const READABLE_TAG_LABELS: Record<string, string> = {
+  urgency: 'Давление и срочность',
+  privacy: 'Личные данные',
+  account: 'Защита аккаунта',
+  antifake: 'Проверка информации',
+  evidence: 'Сохранение доказательств',
+  bullying_witness: 'Реакция на травлю',
+  antibullying: 'Реакция на травлю',
+  communication: 'Безопасное общение'
+};
+
+function toReadableTag(tag: string): string {
+  return READABLE_TAG_LABELS[tag] ?? tag;
+}
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000';
 
 function trimTrailingSlashes(value: string): string {
@@ -212,6 +228,7 @@ export function ScenePlayer({
     choices: modeScene?.choices ?? baseScene.choices
   };
   const highlightTerms = useMemo(() => getHighlightTerms(scene.tags), [scene.tags]);
+  const effectiveHighlightTerms = scene.miniTask?.type === 'find_clue' && !miniTaskSubmitted ? [] : highlightTerms;
 
   useEffect(() => {
     setMiniTaskPassed(false);
@@ -542,7 +559,7 @@ export function ScenePlayer({
               <div className={`chat-content chat-content-${senderType}`}>
                 <p className={`chat-bubble chat-bubble-${senderType}`}>
                   <span className="chat-speaker">{line.speaker}</span>
-                  <span>{renderHighlightedText(line.text, highlightTerms)}</span>
+                  <span>{renderHighlightedText(line.text, effectiveHighlightTerms)}</span>
                 </p>
                 {line.attachment && (
                   <div aria-label={`Вложение: ${line.attachment.label}`} className={`attachment-card attachment-card-${senderType}`} role="group">
@@ -591,9 +608,9 @@ export function ScenePlayer({
                       : 'task-option-disabled';
 
                 return (
-                  <button
-                    className={`choice-button ${clueStateClass} task-option`}
-                    key={option.id}
+                  <div key={option.id}>
+                    <button
+                      className={`choice-button ${clueStateClass} task-option`}
                     type="button"
                     onClick={() => completeFindClueTask(option.id)}
                     disabled={miniTaskSubmitted}
@@ -601,6 +618,10 @@ export function ScenePlayer({
                     <span aria-hidden="true">🔎</span>{' '}
                     {option.text}
                   </button>
+                  {isSelected && miniTaskSubmitted && (
+                    <p className="section-meta quiz-option-feedback">{isTarget ? '✅ Верно.' : '❌ Неверно.'}</p>
+                  )}
+                  </div>
                 );
               })}
             </div>
@@ -649,9 +670,14 @@ export function ScenePlayer({
                       Рискованно
                     </button>
                   </div>
+                  {miniTaskSubmitted && sortAssignments[item.id] && (
+                    <p className="section-meta quiz-option-feedback">
+                      {sortAssignments[item.id] === item.category ? `✅ Верно: ${item.explanation}` : `❌ Неверно: ${item.explanation}`}
+                    </p>
+                  )}
                 </div>
               ))}
-              <button className="choice-button" type="button" onClick={evaluateSortTask} disabled={miniTaskSubmitted}>Проверить сортировку</button>
+              <button className={`choice-button ${!miniTaskSubmitted ? "task-chip-selected" : "task-option-disabled"}`} type="button" onClick={evaluateSortTask} disabled={miniTaskSubmitted}>Проверить сортировку</button>
             </div>
           )}
 
@@ -671,15 +697,19 @@ export function ScenePlayer({
                       : 'task-option-disabled';
 
                 return (
-                  <button
-                    className={`choice-button ${fragmentClass}`}
-                    key={fragment.id}
+                  <div key={fragment.id}>
+                    <button
+                      className={`choice-button ${fragmentClass}`}
                     type="button"
                     onClick={() => toggleBuildSelection(fragment.id)}
                     disabled={miniTaskSubmitted}
                   >
                     {fragment.text}
                   </button>
+                    {miniTaskSubmitted && isSelected && (
+                    <p className="section-meta quiz-option-feedback">{fragment.correct ? '✅ Верно.' : '❌ Неверно.'}</p>
+                  )}
+                  </div>
                 );
               })}
               <div className="chip-row" aria-label="Выбранные шаги">
@@ -697,6 +727,7 @@ export function ScenePlayer({
           )}
 
           {miniTaskFeedback && <p className="section-meta">{miniTaskFeedback}</p>}
+          {scene.miniTask.type === 'sort_safe_risky' && miniTaskPassed && <p className="section-meta">✅ Задание выполнено. Можно продолжить.</p>}
           {miniTaskRiskFeedback && (
             <div className="task-reward task-reward-burst" key={`${scene.id}-${rewardPulse}`} role="status">
               <p>🎉 Улика добавлена в коллекцию.</p>
@@ -709,17 +740,35 @@ export function ScenePlayer({
       )}
 
       <div className="choices">
-        {scene.choices.map((choice) => (
-          <button
-            className={`choice-button choice-${classifyRisk(choice)}`}
-            key={choice.id}
-            type="button"
-            onClick={() => onChoose(choice.id)}
-            disabled={selectedChoice !== null}
-          >
-            {choice.label}
-          </button>
-        ))}
+        {scene.choices.map((choice) => {
+          const risk = classifyRisk(choice);
+          const isSelected = selectedChoiceId === choice.id;
+          const storyChoiceClass = selectedChoiceId === null
+            ? 'task-chip'
+            : isSelected && risk === 'safe'
+              ? 'task-option-correct'
+              : isSelected && risk === 'risky'
+                ? 'task-option-incorrect'
+                : 'task-option-disabled';
+
+          return (
+            <div key={choice.id}>
+              <button
+                className={`choice-button ${storyChoiceClass}`}
+                type="button"
+                onClick={() => onChoose(choice.id)}
+                disabled={selectedChoice !== null}
+              >
+                {choice.label}
+              </button>
+              {isSelected && (
+                <p className="section-meta quiz-option-feedback">
+                  {risk === 'safe' ? '✅ Верно.' : risk === 'risky' ? '❌ Неверно.' : 'ℹ️ Выбор принят.'}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {selectedChoice && (
@@ -730,7 +779,7 @@ export function ScenePlayer({
             <p className="section-meta">Что тренируем: замечать риск, выбирать безопасное действие и понимать, как обсудить ситуацию с взрослым дома или в школе.</p>
             <div className="chip-row" role="list" aria-label="Улики сцены и оценка решения">
               {(scene.tags ?? []).slice(0, 4).map((tag) => (
-                <span className="clue-chip" key={tag} role="listitem">#{tag}</span>
+                <span className="clue-chip" key={tag} role="listitem">{toReadableTag(tag)}</span>
               ))}
               <span className={`status-pill ${classifyRisk(selectedChoice)}`} role="listitem">
                 {classifyRisk(selectedChoice) === 'safe' ? 'Безопасный выбор' : classifyRisk(selectedChoice) === 'risky' ? 'Рискованный выбор' : 'Нейтральный выбор'}

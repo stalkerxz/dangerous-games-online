@@ -401,6 +401,27 @@ export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgr
   return { playerProgress, campaignKpi };
 }
 
+
+export function incrementPlayerSkill(skill: string, amount: number): PlayerProgress {
+  const current = readPlayerProgress();
+  if (!skill || !Number.isFinite(amount) || amount <= 0) {
+    return current;
+  }
+
+  const skills = {
+    ...current.skills,
+    [skill]: (current.skills[skill] ?? 0) + amount
+  };
+
+  const progress: PlayerProgress = {
+    ...current,
+    skills
+  };
+
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  return progress;
+}
+
 export function clearParentsDemoData() {
   localStorage.removeItem(PROGRESS_KEY);
   localStorage.removeItem(CAMPAIGN_PROGRESS_KEY);
