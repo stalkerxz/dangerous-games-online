@@ -37,26 +37,38 @@ function topRiskyTags(metrics: ChapterKpiMetrics | undefined): string[] {
     .map(([tag]) => tag);
 }
 
-const CHAPTER_CARD_THEMES = [
-  { icon: '🌆', accent: '#4f46e5' },
-  { icon: '🛰️', accent: '#0ea5e9' },
-  { icon: '🧩', accent: '#f59e0b' },
-  { icon: '🛡️', accent: '#10b981' },
-  { icon: '🚨', accent: '#ef4444' }
-];
-
-function chapterDescription(chapter: CampaignChapter): string {
-  const words = chapter.title
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 5)
-    .join(' ');
-
-  return words
-    ? `Разберись с рисками в теме «${words}» и подготовься к финальному кейсу.`
-    : 'Тренируйся на сценах, чтобы уверенно дойти до финального кейса.';
-}
+const DISTRICT_META: Record<string, { title: string; icon: string; accent: string; description: string }> = {
+  'chapter-chats': {
+    title: 'Школа',
+    icon: '🏫',
+    accent: '#4f46e5',
+    description: 'Классные чаты, школьные объявления и просьбы «срочно».'
+  },
+  'chapter-social': {
+    title: 'Соцсети',
+    icon: '📱',
+    accent: '#0ea5e9',
+    description: 'Профиль, сторис и личные сообщения: учимся держать границы.'
+  },
+  'chapter-games': {
+    title: 'Игровой клуб',
+    icon: '🎮',
+    accent: '#f59e0b',
+    description: 'Командная игра, донаты и голосовые чаты без ловушек.'
+  },
+  'chapter-fakes': {
+    title: 'Новости и фейки',
+    icon: '📰',
+    accent: '#14b8a6',
+    description: 'Проверяем слухи, фейковые «новости» и поддельные каналы.'
+  },
+  'chapter-cyberbullying': {
+    title: 'Давление и травля',
+    icon: '🧭',
+    accent: '#ef4444',
+    description: 'Как поддержать, зафиксировать доказательства и обратиться за помощью.'
+  }
+};
 
 export function CampaignPage() {
   const navigate = useNavigate();
@@ -74,6 +86,9 @@ export function CampaignPage() {
   const modeKpi = kpiProgress[ageMode];
 
   const chapters = useMemo(() => campaign?.chapters ?? [], [campaign]);
+  const sceneById = useMemo(() => {
+    return new Map((campaign?.scenes ?? []).map((scene) => [scene.id, scene]));
+  }, [campaign]);
   const sceneToChapter = useMemo(() => {
     const index: Record<string, string> = {};
     for (const chapter of chapters) {
@@ -190,7 +205,6 @@ export function CampaignPage() {
 
   const summaryChapter = summaryChapterId ? chapters.find((chapter) => chapter.id === summaryChapterId) : null;
   const summaryMetrics = summaryChapter ? modeKpi?.chapters[summaryChapter.id] : undefined;
-
   if (activeFlow) {
     return (
       <section>
@@ -349,23 +363,32 @@ export function CampaignPage() {
           const chapterFinalUnlocked = totalScenes > 0 && completedScenes >= totalScenes;
           const chapterFinalDone = Boolean(modeProgress.completedFinals[chapter.id]);
           const isStarted = completedScenes > 0;
-          const theme = CHAPTER_CARD_THEMES[index % CHAPTER_CARD_THEMES.length];
-          const actionLabel = chapterFinalUnlocked ? (chapterFinalDone ? 'Финал пройден ✅' : 'Финальный кейс') : isStarted ? 'Продолжить' : 'Начать';
+          const nextSceneId = chapter.scene_ids.find((sceneId) => !modeProgress.completedScenes[sceneId]);
+          const nextMission = nextSceneId ? sceneById.get(nextSceneId)?.title ?? 'Следующая миссия' : 'Все миссии района пройдены';
+          const district = DISTRICT_META[chapter.id] ?? {
+            title: chapter.title,
+            icon: ['🌆', '🛰️', '🧩', '🛡️', '🚨'][index % 5],
+            accent: ['#4f46e5', '#0ea5e9', '#f59e0b', '#10b981', '#ef4444'][index % 5],
+            description: 'Тренируйся на сценах, чтобы уверенно дойти до финального кейса.'
+          };
+          const districtTone = chapterFinalDone ? 'district-safe' : isStarted ? 'district-risk' : 'district-locked';
+          const actionLabel = chapterFinalUnlocked ? (chapterFinalDone ? 'Переиграть финал' : 'Финальный кейс') : isStarted ? 'Продолжить миссии' : 'Войти в район';
           const action = chapterFinalUnlocked ? () => openFinal(chapter) : () => openChapter(chapter);
 
           return (
-            <article key={chapter.id} className="chapter-card city-card" style={{ '--chapter-accent': theme.accent } as CSSProperties}>
+            <article key={chapter.id} className={`chapter-card city-card ${districtTone}`} style={{ '--chapter-accent': district.accent } as CSSProperties}>
               <div className="chapter-card-head">
-                <p className="chapter-icon" aria-hidden="true">{theme.icon}</p>
+                <p className="chapter-icon" aria-hidden="true">{district.icon}</p>
                 <div>
-                  <h4>{chapter.title}</h4>
-                  <p className="chapter-description">{chapterDescription(chapter)}</p>
+                  <h4>{district.title}</h4>
+                  <p className="chapter-description">{district.description}</p>
                 </div>
               </div>
               <p className="chapter-progress-label">Прогресс: {completedScenes}/{totalScenes} ({percent}%)</p>
               <div className="progress" aria-hidden="true">
                 <div className="progress-bar" style={{ width: `${percent}%` }} />
               </div>
+              <p className="chapter-description">Следующая миссия: <strong>{nextMission}</strong></p>
               <p className="chapter-status-row">
                 <span className={`status-pill ${chapterFinalDone ? 'safe' : chapterFinalUnlocked ? 'neutral' : 'risky'}`}>
                   {chapterFinalDone ? 'Финал главы пройден' : chapterFinalUnlocked ? 'Финал открыт' : 'Завершите сцены, чтобы открыть финал'}
@@ -379,6 +402,24 @@ export function CampaignPage() {
             </article>
           );
         })}
+        <article className="chapter-card city-card district-safe support-district" style={{ '--chapter-accent': '#22c55e' } as CSSProperties}>
+          <div className="chapter-card-head">
+            <p className="chapter-icon" aria-hidden="true">🏠</p>
+            <div>
+              <h4>Дом и поддержка</h4>
+              <p className="chapter-description">Район помощи: обсуждаем решения с близкими и классом.</p>
+            </div>
+          </div>
+          <p className="chapter-progress-label">Прогресс: всегда доступен</p>
+          <div className="progress" aria-hidden="true">
+            <div className="progress-bar" style={{ width: '100%' }} />
+          </div>
+          <p className="chapter-description">Следующая миссия: открыть рекомендации для родителей и учителей</p>
+          <p className="chapter-status-row"><span className="status-pill safe">Центр поддержки открыт</span></p>
+          <div className="chapter-actions chapter-actions-single">
+            <button type="button" onClick={() => navigate('/parents')}>Открыть район поддержки</button>
+          </div>
+        </article>
       </div>
     </section>
   );
