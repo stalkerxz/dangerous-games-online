@@ -8,6 +8,7 @@ import { useAgeMode } from '../ageMode';
 import { getAchievementViews } from '../achievements';
 import { isDemoModeEnabled } from '../demoMode';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
+import { readCluesCollection } from '../cluesCollection';
 
 type SkillCard = {
   id: 'privacy' | 'account' | 'antifake' | 'communication' | 'antibullying';
@@ -20,6 +21,20 @@ type LessonKit = {
   id: string;
   title: string;
   sceneIds: string[];
+};
+
+type TeacherLesson = {
+  id: 'class-hour' | 'prevention' | 'home-talk';
+  title: string;
+  duration: string;
+  sceneIds: string[];
+  goal: string;
+  discussion: string;
+  skill: string;
+  watchout: string;
+  intro: string;
+  debriefPrompt: string;
+  nextStep: string;
 };
 
 const readableTagLabels: Record<string, string> = {
@@ -103,6 +118,52 @@ const lessonKits: LessonKit[] = [
   }
 ];
 
+const lessonModeEntries: TeacherLesson[] = [
+  {
+    id: 'class-hour',
+    title: 'Классный час',
+    duration: '10 минут',
+    sceneIds: ['chats-prize-link', 'chats-pressure-admin'],
+    goal: 'Научиться не поддаваться на «срочные» сообщения и проверять источник через взрослого или официальный канал.',
+    discussion: 'Какие слова давления заметили и как можно остановиться перед ответом в школьном чате?',
+    skill: 'Проверка информации и безопасное решение под давлением.',
+    watchout: 'Импульсивные ответы и доверие к «админу» без проверки аккаунта.',
+    intro: 'Короткая сессия для класса: распознаём фейковый приз и тренируем алгоритм проверки.',
+    debriefPrompt: 'Какой один сигнал риска вы теперь точно узнаете в школьном чате?',
+    nextStep: 'Следующий урок: «Профилактика (15 минут)» или глава «Безопасность аккаунта» в кампании.'
+  },
+  {
+    id: 'prevention',
+    title: 'Профилактика',
+    duration: '15 минут',
+    sceneIds: ['chats-second-channel', 'chats-sms-code'],
+    goal: 'Закрепить профилактический алгоритм: не передавать коды, проверять через второй канал и звать взрослого.',
+    discussion: 'Какие действия действительно защищают аккаунт, а какие только выглядят «быстрым решением»?',
+    skill: 'Защита аккаунта и устойчивость к социальной инженерии.',
+    watchout: 'Передача кодов, переход по спешным ссылкам и страх «потерять аккаунт».',
+    intro: 'Практика для профилактики: один кейс на проверку источника и одна мини-задача на безопасный ответ.',
+    debriefPrompt: 'Какой шаг из алгоритма защиты аккаунта вы примените сегодня первым?',
+    nextStep: 'Следующий урок: «Разговор дома (7 минут)» или повтор сцены «chats-final-checklist».'
+  },
+  {
+    id: 'home-talk',
+    title: 'Разговор дома',
+    duration: '7 минут',
+    sceneIds: ['chats-geolocation', 'chats-sms-code'],
+    goal: 'Согласовать дома простые правила по личным данным и кодам подтверждения.',
+    discussion: 'Какие семейные договорённости помогут не делиться геолокацией и кодами даже «знакомым» людям?',
+    skill: 'Личные границы и базовая кибергигиена в повседневном общении.',
+    watchout: 'Снижение внимания к риску, когда пишет «друг» или «поддержка».',
+    intro: 'Домашний формат: короткий чат-кейс + мини-задача и один практический семейный договор.',
+    debriefPrompt: 'Какое семейное правило после сессии вы формулируете одним предложением?',
+    nextStep: 'Следующий урок: «Классный час (10 минут)» или глава «Проверка информации» в кампании.'
+  }
+];
+
+function formatClueLabel(value: string): string {
+  return readableTagLabels[value] ?? value;
+}
+
 function toReadableSkillName(value: string): string {
   return readableTagLabels[value] ?? value;
 }
@@ -115,11 +176,14 @@ export function ParentsPage() {
   const [activeKitId, setActiveKitId] = useState<string | null>(null);
   const [finishedKitId, setFinishedKitId] = useState<string | null>(null);
   const [lessonJustCompleted, setLessonJustCompleted] = useState(false);
+  const [activeTeacherLessonId, setActiveTeacherLessonId] = useState<TeacherLesson['id'] | null>(null);
+  const [teacherLessonStep, setTeacherLessonStep] = useState<'intro' | 'play' | 'debrief' | 'summary'>('intro');
   const [copyState, setCopyState] = useState<'idle' | 'done' | 'error'>('idle');
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
 
   const activeKit = lessonKits.find((kit) => kit.id === activeKitId) ?? null;
+  const activeTeacherLesson = lessonModeEntries.find((lesson) => lesson.id === activeTeacherLessonId) ?? null;
 
   const activeScenes = useMemo<StoryScene[]>(() => {
     if (!campaign || !activeKit) {
@@ -130,6 +194,32 @@ export function ParentsPage() {
       .map((sceneId) => campaign.scenes.find((scene) => scene.id === sceneId))
       .filter((scene): scene is StoryScene => scene !== undefined);
   }, [activeKit, campaign]);
+
+  const activeTeacherScenes = useMemo<StoryScene[]>(() => {
+    if (!campaign || !activeTeacherLesson) {
+      return [];
+    }
+
+    return activeTeacherLesson.sceneIds
+      .map((sceneId) => campaign.scenes.find((scene) => scene.id === sceneId))
+      .filter((scene): scene is StoryScene => scene !== undefined);
+  }, [activeTeacherLesson, campaign]);
+
+  const teacherLessonSummary = useMemo(() => {
+    if (!activeTeacherScenes.length) {
+      return null;
+    }
+
+    const availableClues = readCluesCollection();
+    const lessonClues = Array.from(new Set(activeTeacherScenes.flatMap((scene) => scene.tags ?? [])));
+    const identifiedClues = lessonClues.filter((clue) => (availableClues[clue]?.count ?? 0) > 0);
+    const practicedAlgorithm = activeTeacherScenes.find((scene) => scene.miniTask)?.miniTask?.algorithm ?? 'Пауза → Проверка → Безопасный выбор';
+
+    return {
+      identifiedClues: identifiedClues.map(formatClueLabel),
+      practicedAlgorithm
+    };
+  }, [activeTeacherScenes]);
 
   const campaignKpi = readCampaignKpiProgress()[ageMode];
   const achievementViews = getAchievementViews(achievements);
@@ -230,6 +320,16 @@ export function ParentsPage() {
     setLessonJustCompleted(true);
   };
 
+  const onTeacherLessonStart = (lessonId: TeacherLesson['id']) => {
+    setActiveTeacherLessonId(lessonId);
+    setTeacherLessonStep('intro');
+  };
+
+  const onTeacherLessonReset = () => {
+    setActiveTeacherLessonId(null);
+    setTeacherLessonStep('intro');
+  };
+
 
   if (loading) {
     return <section><h2>Родители и наставники</h2><p>Загружаем отчёт…</p></section>;
@@ -249,6 +349,80 @@ export function ParentsPage() {
         >
           Вернуться к панели
         </button>
+      </section>
+    );
+  }
+
+  if (activeTeacherLesson && teacherLessonStep === 'intro') {
+    return (
+      <section className="parents-page">
+        <h2>Режим урока: {activeTeacherLesson.title}</h2>
+        <article className="parents-report-panel">
+          <p className="summary-label">Формат</p>
+          <p className="summary-value">{activeTeacherLesson.duration}</p>
+          <p>{activeTeacherLesson.intro}</p>
+          <h3>Цель занятия</h3>
+          <p className="section-meta">{activeTeacherLesson.goal}</p>
+          <h3>Что обсудить</h3>
+          <p className="section-meta">{activeTeacherLesson.discussion}</p>
+          <h3>Какой навык формируется</h3>
+          <p className="section-meta">{activeTeacherLesson.skill}</p>
+          <h3>На что обратить внимание</h3>
+          <p className="section-meta">{activeTeacherLesson.watchout}</p>
+          <div className="report-buttons-row">
+            <button type="button" onClick={() => setTeacherLessonStep('play')}>Начать урок</button>
+            <button type="button" className="button-secondary" onClick={onTeacherLessonReset}>Назад к панели</button>
+          </div>
+        </article>
+      </section>
+    );
+  }
+
+  if (activeTeacherLesson && teacherLessonStep === 'play' && activeTeacherScenes.length > 0) {
+    return (
+      <section>
+        <h2>Урок: {activeTeacherLesson.title}</h2>
+        <ScenePlayer
+          title={`${activeTeacherLesson.title} · ${activeTeacherLesson.duration}`}
+          scenes={activeTeacherScenes}
+          onComplete={() => setTeacherLessonStep('debrief')}
+          showSceneProgress
+        />
+      </section>
+    );
+  }
+
+  if (activeTeacherLesson && teacherLessonStep === 'debrief') {
+    return (
+      <section className="parents-page">
+        <h2>Короткий разбор</h2>
+        <article className="parents-report-panel">
+          <p>{activeTeacherLesson.debriefPrompt}</p>
+          <h3>Что обсудить</h3>
+          <p className="section-meta">{activeTeacherLesson.discussion}</p>
+          <button type="button" onClick={() => setTeacherLessonStep('summary')}>Показать итог урока</button>
+        </article>
+      </section>
+    );
+  }
+
+  if (activeTeacherLesson && teacherLessonStep === 'summary') {
+    return (
+      <section className="parents-page">
+        <h2>Итог урока: {activeTeacherLesson.title}</h2>
+        <article className="parents-report-panel">
+          <h3>Какие улики распознаны</h3>
+          <ul>
+            {(teacherLessonSummary?.identifiedClues.length ?? 0) > 0
+              ? teacherLessonSummary?.identifiedClues.map((clue) => <li key={clue}>{clue}</li>)
+              : <li>Улики пока не зафиксированы — повторите одну сцену и выберите безопасный ответ.</li>}
+          </ul>
+          <h3>Какой безопасный алгоритм отработан</h3>
+          <p className="section-meta">{teacherLessonSummary?.practicedAlgorithm}</p>
+          <h3>Следующий шаг</h3>
+          <p className="section-meta">{activeTeacherLesson.nextStep}</p>
+          <button type="button" onClick={onTeacherLessonReset}>Вернуться к Lesson Mode</button>
+        </article>
       </section>
     );
   }
@@ -368,6 +542,17 @@ export function ParentsPage() {
 
       <section className="parents-report-panel" aria-label="Быстрый выбор сценария">
         <h3>Быстрый выбор сценария</h3>
+        <div className="lesson-mode-grid" aria-label="Lesson Mode">
+          {lessonModeEntries.map((entry) => (
+            <article className="lesson-mode-card" key={entry.id}>
+              <h4>{entry.title} ({entry.duration})</h4>
+              <p className="section-meta">{entry.goal}</p>
+              <button type="button" onClick={() => onTeacherLessonStart(entry.id)}>
+                Запустить Lesson Mode
+              </button>
+            </article>
+          ))}
+        </div>
         <div className="quick-picks-grid">
           <article className="quick-pick-card">
             <h4>Для классного часа</h4>
