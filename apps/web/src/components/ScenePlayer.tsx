@@ -177,6 +177,7 @@ export function ScenePlayer({
   const [selectedClueOptionId, setSelectedClueOptionId] = useState<string | null>(null);
   const [sortAssignments, setSortAssignments] = useState<Record<string, 'safe' | 'risky'>>({});
   const [buildSelections, setBuildSelections] = useState<string[]>([]);
+  const [rewardPulse, setRewardPulse] = useState(0);
   const chatListRef = useRef<HTMLUListElement | null>(null);
   const checkedAttachmentSrcRef = useRef(new Set<string>());
 
@@ -354,6 +355,7 @@ export function ScenePlayer({
     setSelectedClueOptionId(optionId);
     if (option.clue === scene.miniTask.targetClue) {
       setMiniTaskPassed(true);
+      setRewardPulse((value) => value + 1);
       setMiniTaskFeedback(scene.miniTask.successText);
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.miniTask.targetClue, option.text);
@@ -383,6 +385,7 @@ export function ScenePlayer({
     const correct = scene.miniTask.items.every((item) => sortAssignments[item.id] === item.category);
     if (correct) {
       setMiniTaskPassed(true);
+      setRewardPulse((value) => value + 1);
       setMiniTaskFeedback('Отлично! Ты верно отделил(а) безопасные действия от рискованных.');
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.tags?.[0] ?? 'antifake', scene.miniTask.prompt);
@@ -430,6 +433,7 @@ export function ScenePlayer({
 
     if (allCorrect) {
       setMiniTaskPassed(true);
+      setRewardPulse((value) => value + 1);
       setMiniTaskFeedback(scene.miniTask.successText);
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.tags?.[0] ?? 'communication', scene.miniTask.prompt);
@@ -488,6 +492,8 @@ export function ScenePlayer({
   };
 
   const isMiniTaskRequired = Boolean(scene.miniTask);
+  const miniTaskTone = miniTaskPassed ? 'task-success' : miniTaskFeedback ? 'task-warning' : 'task-neutral';
+  const buildTaskFragments = scene.miniTask?.type === 'build_safe_response' ? scene.miniTask.fragments : [];
 
   return (
     <article className="scene-card">
@@ -536,19 +542,23 @@ export function ScenePlayer({
       </ul>
 
       {scene.miniTask && (
-        <section className="task-card" aria-label="Мини-задание">
-          <h4>Мини-задание</h4>
+        <section className={`task-card ${miniTaskTone}`} aria-label="Мини-задание">
+          <div className="task-header-row">
+            <h4>Мини-задание</h4>
+            <span className="status-pill neutral">🎯 Практика</span>
+          </div>
           <p>{scene.miniTask.prompt}</p>
 
           {scene.miniTask.type === 'find_clue' && (
-            <div className="task-grid">
+            <div className="task-grid task-grid-clues">
               {scene.miniTask.options.map((option) => (
                 <button
-                  className={`choice-button ${selectedClueOptionId === option.id ? 'task-chip-selected' : 'task-chip'}`}
+                  className={`choice-button ${selectedClueOptionId === option.id ? 'task-chip-selected' : 'task-chip'} task-option`}
                   key={option.id}
                   type="button"
                   onClick={() => completeFindClueTask(option.id)}
                 >
+                  <span aria-hidden="true">🔎</span>{' '}
                   {option.text}
                 </button>
               ))}
@@ -559,7 +569,7 @@ export function ScenePlayer({
             <div className="task-grid">
               {scene.miniTask.items.map((item) => (
                 <div className="sort-row" key={item.id}>
-                  <p>{item.text}</p>
+                  <p><strong>Карточка:</strong> {item.text}</p>
                   <div className="sort-actions">
                     <button
                       className={`choice-button ${sortAssignments[item.id] === 'safe' ? 'choice-safe' : ''}`}
@@ -584,6 +594,7 @@ export function ScenePlayer({
 
           {scene.miniTask.type === 'build_safe_response' && (
             <div className="task-grid">
+              <p className="section-meta">Собери алгоритм из {scene.miniTask.requiredPicks} безопасных шагов.</p>
               {scene.miniTask.fragments.map((fragment) => (
                 <button
                   className={`choice-button ${buildSelections.includes(fragment.id) ? 'task-chip-selected' : 'task-chip'}`}
@@ -594,13 +605,23 @@ export function ScenePlayer({
                   {fragment.text}
                 </button>
               ))}
+              <div className="chip-row" aria-label="Выбранные шаги">
+                {buildSelections.length === 0 && <span className="section-meta">Пока шаги не выбраны.</span>}
+                {buildSelections.map((id, index) => {
+                  const fragment = buildTaskFragments.find((item) => item.id === id);
+                  if (!fragment) {
+                    return null;
+                  }
+                  return <span className="clue-chip" key={id}>{index + 1}. {fragment.text}</span>;
+                })}
+              </div>
               <button className="choice-button" type="button" onClick={evaluateBuildTask}>Собрать безопасный ответ</button>
             </div>
           )}
 
           {miniTaskFeedback && <p className="section-meta">{miniTaskFeedback}</p>}
           {miniTaskRiskFeedback && (
-            <div className="task-reward" role="status">
+            <div className="task-reward task-reward-burst" key={`${scene.id}-${rewardPulse}`} role="status">
               <p>🎉 Улика добавлена в коллекцию.</p>
               <p>{miniTaskRiskFeedback}</p>
               <p>Навык: {scene.miniTask.skill}</p>

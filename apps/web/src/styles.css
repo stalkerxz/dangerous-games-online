@@ -395,9 +395,42 @@ button[disabled] {
   gap: var(--space-2);
 }
 
+.task-card.task-neutral {
+  border-color: #355078;
+}
+
+.task-card.task-warning {
+  border-color: #8a5b1b;
+  background: linear-gradient(180deg, #2a1f12 0%, #161f30 100%);
+}
+
+.task-card.task-success {
+  border-color: #2d9f7e;
+  background: linear-gradient(180deg, #123429 0%, #101d31 100%);
+}
+
+.task-header-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.task-header-row h4 {
+  margin: 0;
+}
+
 .task-grid {
   display: grid;
   gap: var(--space-2);
+}
+
+.task-grid-clues {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.task-option {
+  text-align: left;
 }
 
 .sort-row {
@@ -435,6 +468,25 @@ button[disabled] {
   padding: var(--space-2);
   display: grid;
   gap: var(--space-1);
+}
+
+.task-reward-burst {
+  animation: reward-pop 380ms ease;
+}
+
+@keyframes reward-pop {
+  0% {
+    transform: scale(0.98);
+    box-shadow: 0 0 0 0 rgba(45, 159, 126, 0.35);
+  }
+  60% {
+    transform: scale(1.015);
+    box-shadow: 0 0 0 10px rgba(45, 159, 126, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
 }
 
 .task-reward p {
@@ -759,6 +811,48 @@ button[disabled] {
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
+  position: relative;
+  overflow: hidden;
+}
+
+.city-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -28% -35% auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--chapter-accent, #4f46e5), #ffffff 24%) 0%, transparent 68%);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.district-safe {
+  border-color: color-mix(in srgb, var(--chapter-accent, #4f46e5), #7ef7cc 35%);
+  background: linear-gradient(180deg, rgba(11, 39, 30, 0.84) 0%, rgba(16, 32, 52, 0.95) 100%);
+}
+
+.district-risk {
+  border-color: color-mix(in srgb, var(--chapter-accent, #4f46e5), #ff8baa 34%);
+  animation: district-pulse 1.9s ease-in-out infinite;
+}
+
+.district-locked {
+  opacity: 0.93;
+}
+
+.support-district {
+  border-style: dashed;
+}
+
+@keyframes district-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 
 .chapter-card-head {
