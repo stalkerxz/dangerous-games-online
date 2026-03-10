@@ -175,6 +175,7 @@ export function ScenePlayer({
   const [miniTaskFeedback, setMiniTaskFeedback] = useState<string | null>(null);
   const [miniTaskRiskFeedback, setMiniTaskRiskFeedback] = useState<string | null>(null);
   const [selectedClueOptionId, setSelectedClueOptionId] = useState<string | null>(null);
+  const [miniTaskSubmitted, setMiniTaskSubmitted] = useState(false);
   const [sortAssignments, setSortAssignments] = useState<Record<string, 'safe' | 'risky'>>({});
   const [buildSelections, setBuildSelections] = useState<string[]>([]);
   const [rewardPulse, setRewardPulse] = useState(0);
@@ -203,6 +204,7 @@ export function ScenePlayer({
     setMiniTaskFeedback(null);
     setMiniTaskRiskFeedback(null);
     setSelectedClueOptionId(null);
+    setMiniTaskSubmitted(false);
     setSortAssignments({});
     setBuildSelections([]);
   }, [scene.id]);
@@ -325,7 +327,7 @@ export function ScenePlayer({
   };
 
   const onAnswerQuiz = (index: number) => {
-    if (!selectedChoice) {
+    if (!selectedChoice || selectedQuizOption !== null) {
       return;
     }
 
@@ -343,7 +345,7 @@ export function ScenePlayer({
   };
 
   const completeFindClueTask = (optionId: string) => {
-    if (!scene.miniTask || scene.miniTask.type !== 'find_clue') {
+    if (!scene.miniTask || scene.miniTask.type !== 'find_clue' || miniTaskSubmitted) {
       return;
     }
 
@@ -352,26 +354,30 @@ export function ScenePlayer({
       return;
     }
 
+    setMiniTaskSubmitted(true);
     setSelectedClueOptionId(optionId);
     if (option.clue === scene.miniTask.targetClue) {
       setMiniTaskPassed(true);
       setRewardPulse((value) => value + 1);
-      setMiniTaskFeedback(scene.miniTask.successText);
+      setMiniTaskFeedback(`${scene.miniTask.successText} Отлично: ты точно выделил(а) фразу, которая несёт риск.`);
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.miniTask.targetClue, option.text);
     } else {
       setMiniTaskPassed(false);
-      setMiniTaskFeedback('Почти. Ищи именно признак давления, запроса кода, подозрительной ссылки или секрета в сообщении.');
+      setMiniTaskFeedback('Это не главный сигнал риска. Обрати внимание на фразу, где давят, просят секретные данные или подталкивают к спешке.');
       setMiniTaskRiskFeedback(null);
     }
   };
 
   const assignSortBucket = (itemId: string, bucket: 'safe' | 'risky') => {
+    if (miniTaskSubmitted) {
+      return;
+    }
     setSortAssignments((current) => ({ ...current, [itemId]: bucket }));
   };
 
   const evaluateSortTask = () => {
-    if (!scene.miniTask || scene.miniTask.type !== 'sort_safe_risky') {
+    if (!scene.miniTask || scene.miniTask.type !== 'sort_safe_risky' || miniTaskSubmitted) {
       return;
     }
 
@@ -383,6 +389,7 @@ export function ScenePlayer({
     }
 
     const correct = scene.miniTask.items.every((item) => sortAssignments[item.id] === item.category);
+    setMiniTaskSubmitted(true);
     if (correct) {
       setMiniTaskPassed(true);
       setRewardPulse((value) => value + 1);
@@ -398,7 +405,7 @@ export function ScenePlayer({
   };
 
   const toggleBuildSelection = (fragmentId: string) => {
-    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response') {
+    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response' || miniTaskSubmitted) {
       return;
     }
 
@@ -415,7 +422,7 @@ export function ScenePlayer({
   };
 
   const evaluateBuildTask = () => {
-    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response') {
+    if (!scene.miniTask || scene.miniTask.type !== 'build_safe_response' || miniTaskSubmitted) {
       return;
     }
 
@@ -431,6 +438,7 @@ export function ScenePlayer({
       .filter((fragment) => fragment.correct)
       .every((fragment) => selectedSet.has(fragment.id));
 
+    setMiniTaskSubmitted(true);
     if (allCorrect) {
       setMiniTaskPassed(true);
       setRewardPulse((value) => value + 1);
@@ -493,6 +501,7 @@ export function ScenePlayer({
 
   const isMiniTaskRequired = Boolean(scene.miniTask);
   const miniTaskTone = miniTaskPassed ? 'task-success' : miniTaskFeedback ? 'task-warning' : 'task-neutral';
+  const findClueTask = scene.miniTask?.type === 'find_clue' ? scene.miniTask : null;
   const buildTaskFragments = scene.miniTask?.type === 'build_safe_response' ? scene.miniTask.fragments : [];
 
   return (
@@ -515,19 +524,21 @@ export function ScenePlayer({
           const senderType = classifySpeaker(line.speaker);
           return (
             <li className={`chat-row chat-row-${senderType}`} key={`${line.speaker}-${index}`}>
-              <p className={`chat-bubble chat-bubble-${senderType}`}>
-                <span className="chat-speaker">{line.speaker}</span>
-                <span>{renderHighlightedText(line.text, highlightTerms)}</span>
-              </p>
-              {line.attachment && (
-                <div aria-label={`Вложение: ${line.attachment.label}`} className="attachment-card" role="group">
-                  <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Изображение' : '📎 Файл'}</span>
-                  <p>{line.attachment.label}</p>
-                  {line.attachment.type === 'image' && resolvedAttachmentSrc && (
-                    <img alt={line.attachment.label} className="attachment-preview" loading="lazy" src={resolvedAttachmentSrc} />
-                  )}
-                </div>
-              )}
+              <div className={`chat-content chat-content-${senderType}`}>
+                <p className={`chat-bubble chat-bubble-${senderType}`}>
+                  <span className="chat-speaker">{line.speaker}</span>
+                  <span>{renderHighlightedText(line.text, highlightTerms)}</span>
+                </p>
+                {line.attachment && (
+                  <div aria-label={`Вложение: ${line.attachment.label}`} className={`attachment-card attachment-card-${senderType}`} role="group">
+                    <span className="attachment-type">{line.attachment.type === 'image' ? '🖼️ Изображение' : '📎 Файл'}</span>
+                    <p>{line.attachment.label}</p>
+                    {line.attachment.type === 'image' && resolvedAttachmentSrc && (
+                      <img alt={line.attachment.label} className="attachment-preview" loading="lazy" src={resolvedAttachmentSrc} />
+                    )}
+                  </div>
+                )}
+              </div>
             </li>
           );
         })}
@@ -549,19 +560,34 @@ export function ScenePlayer({
           </div>
           <p>{scene.miniTask.prompt}</p>
 
-          {scene.miniTask.type === 'find_clue' && (
+          {findClueTask && (
             <div className="task-grid task-grid-clues">
-              {scene.miniTask.options.map((option) => (
-                <button
-                  className={`choice-button ${selectedClueOptionId === option.id ? 'task-chip-selected' : 'task-chip'} task-option`}
-                  key={option.id}
-                  type="button"
-                  onClick={() => completeFindClueTask(option.id)}
-                >
-                  <span aria-hidden="true">🔎</span>{' '}
-                  {option.text}
-                </button>
-              ))}
+              {findClueTask.options.map((option) => {
+                const isTarget = option.clue === findClueTask.targetClue;
+                const isSelected = selectedClueOptionId === option.id;
+                const clueStateClass = !miniTaskSubmitted
+                  ? isSelected
+                    ? 'task-chip-selected'
+                    : 'task-chip'
+                  : isTarget
+                    ? 'task-option-correct'
+                    : isSelected
+                      ? 'task-option-incorrect'
+                      : 'task-option-disabled';
+
+                return (
+                  <button
+                    className={`choice-button ${clueStateClass} task-option`}
+                    key={option.id}
+                    type="button"
+                    onClick={() => completeFindClueTask(option.id)}
+                    disabled={miniTaskSubmitted}
+                  >
+                    <span aria-hidden="true">🔎</span>{' '}
+                    {option.text}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -572,39 +598,77 @@ export function ScenePlayer({
                   <p><strong>Карточка:</strong> {item.text}</p>
                   <div className="sort-actions">
                     <button
-                      className={`choice-button ${sortAssignments[item.id] === 'safe' ? 'choice-safe' : ''}`}
+                      className={`choice-button ${
+                        !miniTaskSubmitted
+                          ? sortAssignments[item.id] === 'safe'
+                            ? 'task-chip-selected'
+                            : 'task-chip'
+                          : sortAssignments[item.id] === 'safe' && item.category === 'safe'
+                            ? 'task-option-correct'
+                            : sortAssignments[item.id] === 'safe' && item.category !== 'safe'
+                              ? 'task-option-incorrect'
+                              : 'task-option-disabled'
+                      }`}
                       type="button"
                       onClick={() => assignSortBucket(item.id, 'safe')}
+                      disabled={miniTaskSubmitted}
                     >
                       Безопасно
                     </button>
                     <button
-                      className={`choice-button ${sortAssignments[item.id] === 'risky' ? 'choice-risky' : ''}`}
+                      className={`choice-button ${
+                        !miniTaskSubmitted
+                          ? sortAssignments[item.id] === 'risky'
+                            ? 'task-chip-selected'
+                            : 'task-chip'
+                          : sortAssignments[item.id] === 'risky' && item.category === 'risky'
+                            ? 'task-option-correct'
+                            : sortAssignments[item.id] === 'risky' && item.category !== 'risky'
+                              ? 'task-option-incorrect'
+                              : 'task-option-disabled'
+                      }`}
                       type="button"
                       onClick={() => assignSortBucket(item.id, 'risky')}
+                      disabled={miniTaskSubmitted}
                     >
                       Рискованно
                     </button>
                   </div>
                 </div>
               ))}
-              <button className="choice-button" type="button" onClick={evaluateSortTask}>Проверить сортировку</button>
+              <button className="choice-button" type="button" onClick={evaluateSortTask} disabled={miniTaskSubmitted}>Проверить сортировку</button>
             </div>
           )}
 
           {scene.miniTask.type === 'build_safe_response' && (
             <div className="task-grid">
               <p className="section-meta">Собери алгоритм из {scene.miniTask.requiredPicks} безопасных шагов.</p>
-              {scene.miniTask.fragments.map((fragment) => (
-                <button
-                  className={`choice-button ${buildSelections.includes(fragment.id) ? 'task-chip-selected' : 'task-chip'}`}
-                  key={fragment.id}
-                  type="button"
-                  onClick={() => toggleBuildSelection(fragment.id)}
-                >
-                  {fragment.text}
-                </button>
-              ))}
+              {scene.miniTask.fragments.map((fragment) => {
+                const isSelected = buildSelections.includes(fragment.id);
+                const fragmentClass = !miniTaskSubmitted
+                  ? isSelected
+                    ? 'task-chip-selected'
+                    : 'task-chip'
+                  : isSelected && fragment.correct
+                    ? 'task-option-correct'
+                    : isSelected && !fragment.correct
+                      ? 'task-option-incorrect'
+                      : fragment.correct
+                        ? 'task-option-correct-outline'
+                        : 'task-option-disabled';
+
+                return (
+                  <button
+                    className={`choice-button ${fragmentClass}`}
+                    key={fragment.id}
+                    type="button"
+                    onClick={() => toggleBuildSelection(fragment.id)}
+                    disabled={miniTaskSubmitted}
+                  >
+                    {fragment.text}
+                  </button>
+                );
+              })}
               <div className="chip-row" aria-label="Выбранные шаги">
                 {buildSelections.length === 0 && <span className="section-meta">Пока шаги не выбраны.</span>}
                 {buildSelections.map((id, index) => {
@@ -615,7 +679,7 @@ export function ScenePlayer({
                   return <span className="clue-chip" key={id}>{index + 1}. {fragment.text}</span>;
                 })}
               </div>
-              <button className="choice-button" type="button" onClick={evaluateBuildTask}>Собрать безопасный ответ</button>
+              <button className="choice-button" type="button" onClick={evaluateBuildTask} disabled={miniTaskSubmitted}>Собрать безопасный ответ</button>
             </div>
           )}
 
@@ -638,6 +702,7 @@ export function ScenePlayer({
             key={choice.id}
             type="button"
             onClick={() => onChoose(choice.id)}
+            disabled={selectedChoice !== null}
           >
             {choice.label}
           </button>
@@ -670,15 +735,33 @@ export function ScenePlayer({
             <p className="section-meta">Это учебная и профилактическая проверка: видно, как закрепляется безопасное поведение.</p>
             <p>{selectedChoice.quiz.question}</p>
             <ol className="quiz-options">
-              {selectedChoice.quiz.options.map((option, index) => (
-                <li key={option}>
-                  <button className="choice-button" type="button" onClick={() => onAnswerQuiz(index)}>
-                    {option}
-                  </button>
-                  {selectedQuizOption === index && index === selectedChoice.quiz.answerIndex ? ' ✅' : ''}
-                </li>
-              ))}
+              {selectedChoice.quiz.options.map((option, index) => {
+                const quizClass = selectedQuizOption === null
+                  ? 'task-chip'
+                  : index === selectedQuizOption && index === selectedChoice.quiz.answerIndex
+                    ? 'task-option-correct'
+                    : index === selectedQuizOption
+                      ? 'task-option-incorrect'
+                      : index === selectedChoice.quiz.answerIndex
+                        ? 'task-option-correct-outline'
+                        : 'task-option-disabled';
+
+                return (
+                  <li key={option}>
+                    <button className={`choice-button ${quizClass}`} type="button" onClick={() => onAnswerQuiz(index)} disabled={selectedQuizOption !== null}>
+                      {option}
+                    </button>
+                  </li>
+                );
+              })}
             </ol>
+            {selectedQuizOption !== null && (
+              <p className="section-meta">
+                {selectedQuizOption === selectedChoice.quiz.answerIndex
+                  ? '✅ Верно. Отлично, ключевое правило усвоено.'
+                  : `❌ Неверно. Правильный ответ: ${selectedChoice.quiz.options[selectedChoice.quiz.answerIndex]}`}
+              </p>
+            )}
             <button className="choice-button" type="button" onClick={nextScene} disabled={selectedQuizOption === null || (isMiniTaskRequired && !miniTaskPassed)}>
               {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
