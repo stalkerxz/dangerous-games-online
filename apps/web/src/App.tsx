@@ -6,6 +6,7 @@ import { WeeklyPage } from './pages/WeeklyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CluesPage } from './pages/CluesPage';
 import { OnboardingPage } from './pages/OnboardingPage';
+import { MyPathPage } from './pages/MyPathPage';
 import { useOnboarding } from './onboarding';
 import { usePresentationMode } from './presentationMode';
 
@@ -15,6 +16,7 @@ const navItems = [
   { to: '/achievements', label: 'Достижения' },
   { to: '/parents', label: 'Родителям' },
   { to: '/clues', label: 'Улики' },
+  { to: '/path', label: 'Мой путь' },
   { to: '/settings', label: 'Настройки' }
 ];
 
@@ -57,6 +59,7 @@ export function App() {
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/parents" element={<ParentsPage />} />
           <Route path="/clues" element={<CluesPage />} />
+          <Route path="/path" element={<MyPathPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
