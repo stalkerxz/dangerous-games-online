@@ -8,6 +8,7 @@ export type PlayerProgress = {
 export type CampaignModeProgress = {
   completedScenes: Record<string, { safe: boolean }>;
   completedFinals: Record<string, boolean>;
+  completedMiniTasks: Record<string, boolean>;
 };
 
 export type CampaignProgress = Record<string, CampaignModeProgress>;
@@ -111,7 +112,16 @@ export function completeWeeklyMission(
 function emptyCampaignModeProgress(): CampaignModeProgress {
   return {
     completedScenes: {},
-    completedFinals: {}
+    completedFinals: {},
+    completedMiniTasks: {}
+  };
+}
+
+function normalizeCampaignModeProgress(value: Partial<CampaignModeProgress> | undefined): CampaignModeProgress {
+  return {
+    completedScenes: value?.completedScenes ?? {},
+    completedFinals: value?.completedFinals ?? {},
+    completedMiniTasks: value?.completedMiniTasks ?? {}
   };
 }
 
@@ -159,7 +169,10 @@ export function readCampaignProgress(): CampaignProgress {
   }
 
   try {
-    return JSON.parse(raw) as CampaignProgress;
+    const parsed = JSON.parse(raw) as CampaignProgress;
+    return Object.fromEntries(
+      Object.entries(parsed).map(([mode, progress]) => [mode, normalizeCampaignModeProgress(progress)])
+    );
   } catch {
     return {};
   }
@@ -167,7 +180,7 @@ export function readCampaignProgress(): CampaignProgress {
 
 export function markCampaignSceneCompleted(mode: string, sceneId: string, safe: boolean): CampaignProgress {
   const progress = readCampaignProgress();
-  const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
+  const modeProgress = normalizeCampaignModeProgress(progress[mode] ?? emptyCampaignModeProgress());
 
   progress[mode] = {
     ...modeProgress,
@@ -183,13 +196,29 @@ export function markCampaignSceneCompleted(mode: string, sceneId: string, safe: 
 
 export function markChapterFinalCompleted(mode: string, chapterId: string): CampaignProgress {
   const progress = readCampaignProgress();
-  const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
+  const modeProgress = normalizeCampaignModeProgress(progress[mode] ?? emptyCampaignModeProgress());
 
   progress[mode] = {
     ...modeProgress,
     completedFinals: {
       ...modeProgress.completedFinals,
       [chapterId]: true
+    }
+  };
+
+  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(progress));
+  return progress;
+}
+
+export function markCampaignMiniTaskCompleted(mode: string, sceneId: string): CampaignProgress {
+  const progress = readCampaignProgress();
+  const modeProgress = normalizeCampaignModeProgress(progress[mode] ?? emptyCampaignModeProgress());
+
+  progress[mode] = {
+    ...modeProgress,
+    completedMiniTasks: {
+      ...modeProgress.completedMiniTasks,
+      [sceneId]: true
     }
   };
 
@@ -354,7 +383,8 @@ export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgr
       },
       completedFinals: {
         chats: false
-      }
+      },
+      completedMiniTasks: {}
     }
   };
 

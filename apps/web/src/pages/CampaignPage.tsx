@@ -5,6 +5,7 @@ import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
 import { useAgeMode } from '../ageMode';
 import {
+  markCampaignMiniTaskCompleted,
   markCampaignSceneCompleted,
   markChapterFinalCompleted,
   markChapterFinalKpiCompleted,
@@ -20,6 +21,8 @@ import {
 import type { CampaignChapter, StoryScene } from '../contentEngine';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 import { isDemoModeEnabled } from '../demoMode';
+import { readCluesCollection } from '../cluesCollection';
+import { calculateProgressSummary } from '../progression';
 
 type ActiveFlow =
   | { kind: 'chapter'; chapter: CampaignChapter; scenes: StoryScene[]; title: string }
@@ -36,6 +39,15 @@ function topRiskyTags(metrics: ChapterKpiMetrics | undefined): string[] {
     .slice(0, 3)
     .map(([tag]) => tag);
 }
+
+
+const DISTRICT_BADGES: Record<string, string> = {
+  'chapter-chats': '🏅 Значок: Школьный защитник',
+  'chapter-social': '🏅 Значок: Безопасный блогер',
+  'chapter-games': '🏅 Значок: Честный игрок',
+  'chapter-fakes': '🏅 Значок: Проверяющий факты',
+  'chapter-cyberbullying': '🏅 Значок: Друг и защитник'
+};
 
 const DISTRICT_META: Record<string, { title: string; icon: string; accent: string; description: string }> = {
   'chapter-chats': {
@@ -78,12 +90,14 @@ export function CampaignPage() {
   const [kpiProgress, setKpiProgress] = useState<CampaignKpiProgress>(() => readCampaignKpiProgress());
   const [activeFlow, setActiveFlow] = useState<ActiveFlow | null>(null);
   const [summaryChapterId, setSummaryChapterId] = useState<string | null>(null);
+  const [microReward, setMicroReward] = useState<string | null>(null);
 
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
 
-  const modeProgress = campaignProgress[ageMode] ?? { completedScenes: {}, completedFinals: {} };
+  const modeProgress = campaignProgress[ageMode] ?? { completedScenes: {}, completedFinals: {}, completedMiniTasks: {} };
   const modeKpi = kpiProgress[ageMode];
+  const clues = readCluesCollection();
 
   const chapters = useMemo(() => campaign?.chapters ?? [], [campaign]);
   const sceneById = useMemo(() => {
@@ -99,6 +113,12 @@ export function CampaignPage() {
     }
     return index;
   }, [chapters]);
+
+
+  const progression = useMemo(
+    () => calculateProgressSummary(modeProgress, chapters, clues, modeKpi?.overall.safe_choices_count ?? 0),
+    [modeProgress, chapters, clues, modeKpi]
+  );
 
   const onEvent = (event: GameEvent) => {
     processAchievementEvent(achievements, event);
@@ -116,6 +136,12 @@ export function CampaignPage() {
       const sceneId = String(event.payload.sceneId ?? '');
       const chapterId = String(event.payload.chapterId ?? sceneToChapter[sceneId] ?? '');
       if (!sceneId || !chapterId) {
+        return;
+      }
+
+      if (event.payload.mini_task_completed === true) {
+        const progress = markCampaignMiniTaskCompleted(ageMode, sceneId);
+        setCampaignProgress(progress);
         return;
       }
 
@@ -234,6 +260,7 @@ export function CampaignPage() {
             setActiveFlow(null);
           }}
           showSceneProgress
+          onMicroReward={(message) => setMicroReward(message)}
         />
       </section>
     );
@@ -305,6 +332,26 @@ export function CampaignPage() {
           <p className="section-meta">Источник: {source === 'network' ? 'Синхронизация онлайн' : 'Локальный кэш'}</p>
         </div>
       </header>
+
+
+      <section className="clues-summary" aria-label="Уровень прогресса">
+        <article className="summary-metric">
+          <p className="summary-label">Текущий титул</p>
+          <p className="summary-value">{progression.title}</p>
+          <p className="section-meta">Очки: {progression.score}</p>
+        </article>
+        <article className="summary-metric">
+          <p className="summary-label">Рост до следующего титула</p>
+          <p className="summary-value">{progression.nextTitle ?? 'Максимум'}</p>
+          <div className="progress" aria-hidden="true"><div className="progress-bar" style={{ width: `${progression.progressToNext}%` }} /></div>
+        </article>
+      </section>
+
+      {microReward && (
+        <section className="task-reward task-reward-burst" aria-label="Микро-награда">
+          <p>✨ {microReward}</p>
+        </section>
+      )}
 
       <section className="parents-report-panel" aria-label="Практическое использование в школе и семье">
         <h3>Подходит для классного часа</h3>
@@ -385,13 +432,14 @@ export function CampaignPage() {
                 </div>
               </div>
               <p className="chapter-progress-label">Прогресс: {completedScenes}/{totalScenes} ({percent}%)</p>
+              {chapterFinalDone && <p className="badge">{DISTRICT_BADGES[chapter.id] ?? '🏅 Награда района открыта'}</p>}
               <div className="progress" aria-hidden="true">
                 <div className="progress-bar" style={{ width: `${percent}%` }} />
               </div>
               <p className="chapter-description">Следующая миссия: <strong>{nextMission}</strong></p>
               <p className="chapter-status-row">
                 <span className={`status-pill ${chapterFinalDone ? 'safe' : chapterFinalUnlocked ? 'neutral' : 'risky'}`}>
-                  {chapterFinalDone ? 'Финал главы пройден' : chapterFinalUnlocked ? 'Финал открыт' : 'Завершите сцены, чтобы открыть финал'}
+                  {chapterFinalDone ? '✅ Район завершён, награда открыта' : chapterFinalUnlocked ? 'Финал открыт' : 'Соберите сцены, чтобы открыть финал района'}
                 </span>
               </p>
               <div className="chapter-actions chapter-actions-single">
@@ -415,7 +463,7 @@ export function CampaignPage() {
             <div className="progress-bar" style={{ width: '100%' }} />
           </div>
           <p className="chapter-description">Следующая миссия: открыть рекомендации для родителей и учителей</p>
-          <p className="chapter-status-row"><span className="status-pill safe">Центр поддержки открыт</span></p>
+          <p className="chapter-status-row"><span className="status-pill safe">Центр поддержки открыт всегда</span></p>
           <div className="chapter-actions chapter-actions-single">
             <button type="button" onClick={() => navigate('/parents')}>Открыть район поддержки</button>
           </div>
