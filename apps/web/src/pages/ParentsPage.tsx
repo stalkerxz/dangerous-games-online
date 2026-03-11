@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
-import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress } from '../playerProgress';
+import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress, subscribeProgressUpdates } from '../playerProgress';
 import { useAgeMode } from '../ageMode';
 import { getAchievementViews } from '../achievements';
 import { isDemoModeEnabled } from '../demoMode';
@@ -180,7 +180,15 @@ export function ParentsPage() {
   const [teacherLessonStep, setTeacherLessonStep] = useState<'intro' | 'play' | 'debrief' | 'summary'>('intro');
   const [copyState, setCopyState] = useState<'idle' | 'done' | 'error'>('idle');
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
+  const [progressRefreshToken, setProgressRefreshToken] = useState(0);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
+
+  useEffect(() => {
+    return subscribeProgressUpdates(() => {
+      setProgress(readPlayerProgress());
+      setProgressRefreshToken((value) => value + 1);
+    });
+  }, []);
 
   const activeKit = lessonKits.find((kit) => kit.id === activeKitId) ?? null;
   const activeTeacherLesson = lessonModeEntries.find((lesson) => lesson.id === activeTeacherLessonId) ?? null;
@@ -221,7 +229,10 @@ export function ParentsPage() {
     };
   }, [activeTeacherScenes]);
 
-  const campaignKpi = readCampaignKpiProgress()[ageMode];
+  const campaignKpi = useMemo(() => {
+    void progressRefreshToken;
+    return readCampaignKpiProgress()[ageMode];
+  }, [ageMode, progressRefreshToken]);
   const achievementViews = getAchievementViews(achievements);
   const unlockedAchievementsCount = achievementViews.filter((item) => item.unlocked).length;
 

@@ -78,6 +78,14 @@ function classifyRisk(choice: SceneChoice): 'safe' | 'risky' | 'neutral' {
   return 'neutral';
 }
 
+
+function isSafeChoice(choice: SceneChoice): boolean {
+  if (typeof choice.safe === 'boolean') {
+    return choice.safe;
+  }
+  return classifyRisk(choice) === 'safe';
+}
+
 function getHighlightTerms(tags: string[] | undefined): string[] {
   const normalizedTags = (tags ?? []).map((tag) => tag.toLowerCase());
   const terms = new Set<string>();
@@ -618,7 +626,7 @@ export function ScenePlayer({
                   <div key={option.id}>
                     <button
                       className={`choice-button ${clueStateClass} task-option`}
-                    type="button"
+                      type="button"
                     onClick={() => completeFindClueTask(option.id)}
                     disabled={miniTaskSubmitted}
                   >
@@ -707,7 +715,7 @@ export function ScenePlayer({
                   <div key={fragment.id}>
                     <button
                       className={`choice-button ${fragmentClass}`}
-                    type="button"
+                      type="button"
                     onClick={() => toggleBuildSelection(fragment.id)}
                     disabled={miniTaskSubmitted}
                   >
@@ -748,13 +756,13 @@ export function ScenePlayer({
 
       <div className="choices">
         {scene.choices.map((choice) => {
-          const risk = classifyRisk(choice);
           const isSelected = selectedChoiceId === choice.id;
+          const isCorrectChoice = isSafeChoice(choice);
           const storyChoiceClass = selectedChoiceId === null
             ? 'task-chip'
-            : isSelected && risk === 'safe'
+            : isSelected && isCorrectChoice
               ? 'task-option-correct'
-              : isSelected && risk === 'risky'
+              : isSelected
                 ? 'task-option-incorrect'
                 : 'task-option-disabled';
 
@@ -770,7 +778,7 @@ export function ScenePlayer({
               </button>
               {isSelected && (
                 <p className="section-meta quiz-option-feedback">
-                  {risk === 'safe' ? '✅ Верно.' : risk === 'risky' ? '❌ Неверно.' : 'ℹ️ Выбор принят.'}
+                  {isCorrectChoice ? '✅ Верно.' : '❌ Неверно.'}
                 </p>
               )}
             </div>
@@ -788,12 +796,12 @@ export function ScenePlayer({
               {(scene.tags ?? []).slice(0, 4).map((tag) => (
                 <span className="clue-chip" key={tag} role="listitem">{toReadableTag(tag)}</span>
               ))}
-              <span className={`status-pill ${classifyRisk(selectedChoice)}`} role="listitem">
-                {classifyRisk(selectedChoice) === 'safe' ? 'Безопасный выбор' : classifyRisk(selectedChoice) === 'risky' ? 'Рискованный выбор' : 'Нейтральный выбор'}
+              <span className={`status-pill ${isSafeChoice(selectedChoice) ? 'safe' : 'risky'}`} role="listitem">
+                {isSafeChoice(selectedChoice) ? 'Безопасный выбор' : 'Рискованный выбор'}
               </span>
             </div>
             <div className="task-reward">
-              <p>Риск: {classifyRisk(selectedChoice) === 'safe' ? 'Риск снижен — ты не передал(а) данные и не поддался(лась) давлению.' : 'Риск вырос — действие могло привести к утечке/эскалации.'}</p>
+              <p>Риск: {isSafeChoice(selectedChoice) ? 'Риск снижен — ты не передал(а) данные и не поддался(лась) давлению.' : 'Риск вырос — действие могло привести к утечке/эскалации.'}</p>
               <p>Навык: {getSkillFromTags(scene.tags)}</p>
               <p>Алгоритм: {getAlgorithmFromTags(scene.tags)}</p>
             </div>
