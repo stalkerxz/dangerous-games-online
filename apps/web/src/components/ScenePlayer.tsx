@@ -80,10 +80,15 @@ function classifyRisk(choice: SceneChoice): 'safe' | 'risky' | 'neutral' {
 
 
 function isSafeChoice(choice: SceneChoice): boolean {
+  return getChoiceRiskLevel(choice) === 'safe';
+}
+
+
+function getChoiceRiskLevel(choice: SceneChoice): 'safe' | 'risky' | 'neutral' {
   if (typeof choice.safe === 'boolean') {
-    return choice.safe;
+    return choice.safe ? 'safe' : 'risky';
   }
-  return classifyRisk(choice) === 'safe';
+  return classifyRisk(choice);
 }
 
 function getHighlightTerms(tags: string[] | undefined): string[] {
@@ -354,7 +359,7 @@ export function ScenePlayer({
     const choice = scene.choices.find((item) => item.id === choiceId);
     if (choice) {
       const primaryTag = scene.tags?.[0] ?? choice.effects?.clues?.[0] ?? choice.tags?.[0] ?? '';
-      const riskLevel = classifyRisk(choice);
+      const riskLevel = getChoiceRiskLevel(choice);
       onEvent?.({
         type: 'choice_made',
         payload: {
@@ -503,7 +508,7 @@ export function ScenePlayer({
     if (selectedChoice) {
       recordSceneClues(scene, selectedChoice);
       const primaryTag = scene.tags?.[0] ?? selectedChoice.effects?.clues?.[0] ?? selectedChoice.tags?.[0] ?? '';
-      const riskLevel = classifyRisk(selectedChoice);
+      const riskLevel = getChoiceRiskLevel(selectedChoice);
       onEvent?.({
         type: 'scene_completed',
         payload: {
