@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getAchievementViews } from '../achievements';
 import { useContent } from '../contentContext';
-import { readPlayerProgress } from '../playerProgress';
+import { readPlayerProgress, subscribeProgressUpdates } from '../playerProgress';
 
 function getPathTitle(level: number): string {
   if (level >= 7) {
@@ -18,7 +18,13 @@ export function AchievementsPage() {
 
   const items = useMemo(() => getAchievementViews(achievements), [achievements]);
   const unlocked = items.filter((item) => item.unlocked);
-  const progress = useMemo(() => readPlayerProgress(), []);
+  const [progress, setProgress] = useState(() => readPlayerProgress());
+
+  useEffect(() => {
+    return subscribeProgressUpdates(() => {
+      setProgress(readPlayerProgress());
+    });
+  }, []);
 
   const skillTotal = Object.values(progress.skills).reduce((sum, value) => sum + value, 0);
   const level = Math.max(1, Math.floor(skillTotal / 3) + 1);
@@ -29,7 +35,8 @@ export function AchievementsPage() {
     <section className="achievements-page">
       <header className="page-hero page-hero-achievements">
         <p className="page-hero-kicker">Прогресс игрока</p>
-        <h2>Мой путь</h2>
+        <h2>Достижения</h2>
+        <h3>Мой путь</h3>
         <p className="section-meta">Открывайте трофеи за безопасные решения и устойчивые цифровые навыки.</p>
       </header>
 

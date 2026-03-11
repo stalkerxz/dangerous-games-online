@@ -1,7 +1,7 @@
-import { type CSSProperties, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getClueDescription, readCluesCollection } from '../cluesCollection';
-import { readCampaignProgress, readPlayerProgress } from '../playerProgress';
+import { getClueDescription, readCluesCollection, subscribeCluesUpdates } from '../cluesCollection';
+import { readCampaignProgress, readPlayerProgress, subscribeProgressUpdates } from '../playerProgress';
 import { isDemoModeEnabled } from '../demoMode';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 
@@ -86,14 +86,27 @@ export function CluesPage() {
   const navigate = useNavigate();
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
-  const clues = useMemo(() => readCluesCollection(), []);
+  const [clues, setClues] = useState(() => readCluesCollection());
+  const [playerProgress, setPlayerProgress] = useState(() => readPlayerProgress());
+  const [campaignProgress, setCampaignProgress] = useState(() => readCampaignProgress());
+
+  useEffect(() => {
+    return subscribeCluesUpdates(() => {
+      setClues(readCluesCollection());
+    });
+  }, []);
+
+  useEffect(() => {
+    return subscribeProgressUpdates(() => {
+      setPlayerProgress(readPlayerProgress());
+      setCampaignProgress(readCampaignProgress());
+    });
+  }, []);
+
   const items = useMemo(
     () => Object.entries(clues).sort((a, b) => b[1].count - a[1].count),
     [clues]
   );
-
-  const playerProgress = useMemo(() => readPlayerProgress(), []);
-  const campaignProgress = useMemo(() => readCampaignProgress(), []);
 
   const knownTypes = Object.keys(clueMetaMap).length;
   const discoveredTypes = Math.min(items.length, knownTypes);
