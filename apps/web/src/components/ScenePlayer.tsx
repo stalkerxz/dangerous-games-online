@@ -116,16 +116,20 @@ function renderHighlightedText(text: string, terms: string[]): ReactNode {
 
 function classifySpeaker(speaker: string): 'player' | 'system' | 'other' {
   const normalized = speaker.toLocaleLowerCase('ru-RU').trim();
+  const latinTokens = new Set(normalized.split(/[^a-z]+/g).filter(Boolean));
+
   if (
     normalized.includes('ты')
     || normalized.includes('игрок')
     || normalized === 'я'
-    || normalized.includes('you')
-    || normalized.includes('me')
     || normalized.includes('ученик')
+    || latinTokens.has('you')
+    || latinTokens.has('me')
+    || latinTokens.has('player')
   ) {
     return 'player';
   }
+
   if (
     normalized.includes('бот')
     || normalized.includes('админ')
@@ -133,9 +137,12 @@ function classifySpeaker(speaker: string): 'player' | 'system' | 'other' {
     || normalized.includes('саппорт')
     || normalized.includes('система')
     || normalized.includes('модератор')
+    || latinTokens.has('system')
+    || latinTokens.has('moderator')
   ) {
     return 'system';
   }
+
   return 'other';
 }
 
@@ -828,7 +835,7 @@ export function ScenePlayer({
             <button className="choice-button" type="button" onClick={nextScene} disabled={!isNextSceneUnlocked}>
               {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
-            {isMiniTaskRequired && !miniTaskPassed && <p className="section-meta">Сначала заверши мини-задание этой сцены.</p>}
+            {isMiniTaskRequired && !isNextSceneUnlocked && !miniTaskPassed && <p className="section-meta">Сначала заверши мини-задание этой сцены.</p>}
           </section>
         </div>
       )}
