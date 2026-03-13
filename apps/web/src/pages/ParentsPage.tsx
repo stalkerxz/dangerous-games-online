@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { useContent } from '../contentContext';
 import type { StoryScene } from '../contentEngine';
-import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress } from '../playerProgress';
+import { completeLessonKit, readCampaignKpiProgress, readPlayerProgress, subscribeProgressUpdates } from '../playerProgress';
 import { useAgeMode } from '../ageMode';
 import { getAchievementViews } from '../achievements';
 import { isDemoModeEnabled } from '../demoMode';
@@ -180,7 +180,15 @@ export function ParentsPage() {
   const [teacherLessonStep, setTeacherLessonStep] = useState<'intro' | 'play' | 'debrief' | 'summary'>('intro');
   const [copyState, setCopyState] = useState<'idle' | 'done' | 'error'>('idle');
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
+  const [progressRefreshToken, setProgressRefreshToken] = useState(0);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
+
+  useEffect(() => {
+    return subscribeProgressUpdates(() => {
+      setProgress(readPlayerProgress());
+      setProgressRefreshToken((value) => value + 1);
+    });
+  }, []);
 
   const activeKit = lessonKits.find((kit) => kit.id === activeKitId) ?? null;
   const activeTeacherLesson = lessonModeEntries.find((lesson) => lesson.id === activeTeacherLessonId) ?? null;
@@ -221,7 +229,10 @@ export function ParentsPage() {
     };
   }, [activeTeacherScenes]);
 
-  const campaignKpi = readCampaignKpiProgress()[ageMode];
+  const campaignKpi = useMemo(() => {
+    void progressRefreshToken;
+    return readCampaignKpiProgress()[ageMode];
+  }, [ageMode, progressRefreshToken]);
   const achievementViews = getAchievementViews(achievements);
   const unlockedAchievementsCount = achievementViews.filter((item) => item.unlocked).length;
 
@@ -229,6 +240,44 @@ export function ParentsPage() {
   const riskyChoices = campaignKpi?.overall.risky_choices_count ?? 0;
   const totalChoices = safeChoices + riskyChoices;
   const safePercent = totalChoices > 0 ? Math.round((safeChoices / totalChoices) * 100) : null;
+
+
+  const mergedSkillScores = useMemo(() => {
+    const tagSafeCounts = campaignKpi?.overall.tag_safe_counts ?? {};
+    const tagToSkill: Record<string, SkillCard['id']> = {
+      privacy: 'privacy',
+      account: 'account',
+      urgency: 'antifake',
+      antifake: 'antifake',
+      communication: 'communication',
+      antibullying: 'antibullying',
+      bullying_witness: 'antibullying',
+      evidence: 'antibullying'
+    };
+
+    const fromCampaign: Record<SkillCard['id'], number> = {
+      privacy: 0,
+      account: 0,
+      antifake: 0,
+      communication: 0,
+      antibullying: 0
+    };
+
+    for (const [tag, count] of Object.entries(tagSafeCounts)) {
+      const skillId = tagToSkill[tag];
+      if (skillId) {
+        fromCampaign[skillId] += count;
+      }
+    }
+
+    return {
+      privacy: (progress.skills.privacy ?? 0) + fromCampaign.privacy,
+      account: (progress.skills.account ?? 0) + fromCampaign.account,
+      antifake: (progress.skills.antifake ?? 0) + fromCampaign.antifake,
+      communication: (progress.skills.communication ?? 0) + fromCampaign.communication,
+      antibullying: (progress.skills.antibullying ?? 0) + fromCampaign.antibullying
+    };
+  }, [campaignKpi, progress.skills]);
 
   const skillRanking = useMemo(() => {
     const tagTotals = campaignKpi?.overall.tag_totals ?? {};
@@ -580,7 +629,7 @@ export function ParentsPage() {
 
       <div className="parents-grid">
         {skillCards.map((skill) => {
-          const score = progress.skills[skill.id] ?? 0;
+          const score = mergedSkillScores[skill.id] ?? 0;
           const visualPercent = Math.min(100, score * 10);
 
           return (
