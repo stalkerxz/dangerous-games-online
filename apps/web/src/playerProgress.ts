@@ -39,6 +39,46 @@ const PROGRESS_KEY = 'dgo-player-progress:v1';
 const CAMPAIGN_PROGRESS_KEY = 'dgo-campaign-progress:v1';
 const CAMPAIGN_KPI_KEY = 'dgo-campaign-kpi:v1';
 
+
+const PROGRESS_UPDATED_EVENT = 'dgo-progress-updated';
+
+function notifyProgressUpdated() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new Event(PROGRESS_UPDATED_EVENT));
+}
+
+function persistProgressKey(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify(value));
+  notifyProgressUpdated();
+}
+
+function clearProgressKey(key: string) {
+  localStorage.removeItem(key);
+  notifyProgressUpdated();
+}
+
+export function subscribeProgressUpdates(listener: () => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  const onStorage = (event: StorageEvent) => {
+    if (!event.key || [PROGRESS_KEY, CAMPAIGN_PROGRESS_KEY, CAMPAIGN_KPI_KEY].includes(event.key)) {
+      listener();
+    }
+  };
+
+  window.addEventListener(PROGRESS_UPDATED_EVENT, listener);
+  window.addEventListener('storage', onStorage);
+
+  return () => {
+    window.removeEventListener(PROGRESS_UPDATED_EVENT, listener);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
 const EMPTY_PROGRESS: PlayerProgress = {
   completedWeeklyIds: [],
   completedLessonKitIds: [],
@@ -76,7 +116,7 @@ export function completeLessonKit(kitId: string): PlayerProgress {
     completedLessonKitIds: [...current.completedLessonKitIds, kitId]
   };
 
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  persistProgressKey(PROGRESS_KEY, progress);
   return progress;
 }
 
@@ -105,7 +145,7 @@ export function completeWeeklyMission(
     badges,
     skills
   };
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  persistProgressKey(PROGRESS_KEY, progress);
   return { updated: true, progress };
 }
 
@@ -190,7 +230,7 @@ export function markCampaignSceneCompleted(mode: string, sceneId: string, safe: 
     }
   };
 
-  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(progress));
+  persistProgressKey(CAMPAIGN_PROGRESS_KEY, progress);
   return progress;
 }
 
@@ -206,7 +246,7 @@ export function markChapterFinalCompleted(mode: string, chapterId: string): Camp
     }
   };
 
-  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(progress));
+  persistProgressKey(CAMPAIGN_PROGRESS_KEY, progress);
   return progress;
 }
 
@@ -311,7 +351,7 @@ export function recordCampaignSceneKpi(
     }
   };
 
-  localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(progress));
+  persistProgressKey(CAMPAIGN_KPI_KEY, progress);
   return progress;
 }
 
@@ -336,7 +376,7 @@ export function recordCampaignQuizKpi(mode: string, chapterId: string, correct: 
     }
   };
 
-  localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(progress));
+  persistProgressKey(CAMPAIGN_KPI_KEY, progress);
   return progress;
 }
 
@@ -356,7 +396,7 @@ export function markChapterFinalKpiCompleted(mode: string, chapterId: string): C
     }
   };
 
-  localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(progress));
+  persistProgressKey(CAMPAIGN_KPI_KEY, progress);
   return progress;
 }
 
@@ -424,15 +464,36 @@ export function seedParentsDemoData(mode: string): { playerProgress: PlayerProgr
     }
   };
 
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(playerProgress));
-  localStorage.setItem(CAMPAIGN_PROGRESS_KEY, JSON.stringify(campaignProgress));
-  localStorage.setItem(CAMPAIGN_KPI_KEY, JSON.stringify(campaignKpi));
+  persistProgressKey(PROGRESS_KEY, playerProgress);
+  persistProgressKey(CAMPAIGN_PROGRESS_KEY, campaignProgress);
+  persistProgressKey(CAMPAIGN_KPI_KEY, campaignKpi);
 
   return { playerProgress, campaignKpi };
 }
 
+
+export function incrementPlayerSkill(skill: string, amount: number): PlayerProgress {
+  const current = readPlayerProgress();
+  if (!skill || !Number.isFinite(amount) || amount <= 0) {
+    return current;
+  }
+
+  const skills = {
+    ...current.skills,
+    [skill]: (current.skills[skill] ?? 0) + amount
+  };
+
+  const progress: PlayerProgress = {
+    ...current,
+    skills
+  };
+
+  persistProgressKey(PROGRESS_KEY, progress);
+  return progress;
+}
+
 export function clearParentsDemoData() {
-  localStorage.removeItem(PROGRESS_KEY);
-  localStorage.removeItem(CAMPAIGN_PROGRESS_KEY);
-  localStorage.removeItem(CAMPAIGN_KPI_KEY);
+  clearProgressKey(PROGRESS_KEY);
+  clearProgressKey(CAMPAIGN_PROGRESS_KEY);
+  clearProgressKey(CAMPAIGN_KPI_KEY);
 }
