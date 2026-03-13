@@ -6,6 +6,7 @@ import { processAchievementEvent, type GameEvent } from '../achievements';
 import { useAgeMode } from '../ageMode';
 import {
   incrementPlayerSkill,
+  markCampaignMiniTaskCompleted,
   markCampaignSceneCompleted,
   markChapterFinalCompleted,
   markChapterFinalKpiCompleted,
@@ -16,7 +17,7 @@ import {
   type CampaignKpiProgress,
   type CampaignProgress,
   type ChapterKpiMetrics,
-  type RiskLevel
+  type RiskLevel,
 } from '../playerProgress';
 import type { CampaignChapter, StoryScene } from '../contentEngine';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
@@ -103,6 +104,7 @@ export function CampaignPage() {
 
   const modeProgress = campaignProgress[ageMode] ?? { completedScenes: {}, completedFinals: {} };
   const modeKpi = kpiProgress[ageMode];
+  void markCampaignMiniTaskCompleted;
 
   const chapters = useMemo(() => campaign?.chapters ?? [], [campaign]);
   const sceneById = useMemo(() => {

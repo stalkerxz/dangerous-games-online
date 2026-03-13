@@ -221,6 +221,26 @@ export function markCampaignSceneCompleted(mode: string, sceneId: string, safe: 
   return progress;
 }
 
+
+export function markCampaignMiniTaskCompleted(mode: string, sceneId: string, passed: boolean): CampaignProgress {
+  const progress = readCampaignProgress();
+  const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
+
+  progress[mode] = {
+    ...modeProgress,
+    completedScenes: {
+      ...modeProgress.completedScenes,
+      [sceneId]: {
+        ...modeProgress.completedScenes[sceneId],
+        safe: modeProgress.completedScenes[sceneId]?.safe ?? passed
+      }
+    }
+  };
+
+  persistProgressKey(CAMPAIGN_PROGRESS_KEY, progress);
+  return progress;
+}
+
 export function markChapterFinalCompleted(mode: string, chapterId: string): CampaignProgress {
   const progress = readCampaignProgress();
   const modeProgress = progress[mode] ?? emptyCampaignModeProgress();
