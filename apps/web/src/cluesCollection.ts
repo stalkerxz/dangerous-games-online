@@ -11,6 +11,42 @@ export type CluesCollection = Record<string, ClueEntry>;
 const CLUES_COLLECTION_KEY = 'dgo-risk-clues:v1';
 const MAX_EXAMPLES = 3;
 
+
+const CLUES_UPDATED_EVENT = 'dgo-clues-updated';
+
+function notifyCluesUpdated() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new Event(CLUES_UPDATED_EVENT));
+}
+
+function persistClues(collection: CluesCollection) {
+  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(collection));
+  notifyCluesUpdated();
+}
+
+export function subscribeCluesUpdates(listener: () => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  const onStorage = (event: StorageEvent) => {
+    if (!event.key || event.key === CLUES_COLLECTION_KEY) {
+      listener();
+    }
+  };
+
+  window.addEventListener(CLUES_UPDATED_EVENT, listener);
+  window.addEventListener('storage', onStorage);
+
+  return () => {
+    window.removeEventListener(CLUES_UPDATED_EVENT, listener);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
+
 const clueDescriptions: Record<string, string> = {
   urgency: 'Давление срочностью: подталкивают действовать немедленно.',
   privacy: 'Риски для личных данных и конфиденциальности.',
@@ -87,7 +123,7 @@ export function recordSceneClues(scene: StoryScene, choice: SceneChoice): CluesC
     };
   }
 
-  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(collection));
+  persistClues(collection);
   return collection;
 }
 
@@ -113,7 +149,7 @@ export function recordDirectClue(clue: string, example: string): CluesCollection
     examples: mergedExamples.slice(0, MAX_EXAMPLES)
   };
 
-  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(collection));
+  persistClues(collection);
   return collection;
 }
 
@@ -142,10 +178,11 @@ export function seedDemoClues(): CluesCollection {
     }
   };
 
-  localStorage.setItem(CLUES_COLLECTION_KEY, JSON.stringify(demo));
+  persistClues(demo);
   return demo;
 }
 
 export function clearCluesCollection() {
   localStorage.removeItem(CLUES_COLLECTION_KEY);
+  notifyCluesUpdated();
 }

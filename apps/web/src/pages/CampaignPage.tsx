@@ -5,6 +5,7 @@ import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
 import { useAgeMode } from '../ageMode';
 import {
+  incrementPlayerSkill,
   markCampaignSceneCompleted,
   markChapterFinalCompleted,
   markChapterFinalKpiCompleted,
@@ -20,6 +21,24 @@ import {
 import type { CampaignChapter, StoryScene } from '../contentEngine';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 import { isDemoModeEnabled } from '../demoMode';
+
+
+const READABLE_TAG_LABELS: Record<string, string> = {
+  urgency: 'Давление и срочность',
+  privacy: 'Личные данные',
+  account: 'Защита аккаунта',
+  antifake: 'Проверка информации',
+  evidence: 'Сохранение доказательств',
+  bullying_witness: 'Реакция на травлю',
+  antibullying: 'Реакция на травлю',
+  communication: 'Безопасное общение',
+  review_quiz_accuracy: 'Точность ответов в проверке понимания',
+  review_safe_choices: 'Доля безопасных решений'
+};
+
+function toReadableTagLabel(tag: string): string {
+  return READABLE_TAG_LABELS[tag] ?? tag;
+}
 
 type ActiveFlow =
   | { kind: 'chapter'; chapter: CampaignChapter; scenes: StoryScene[]; title: string }
@@ -110,6 +129,15 @@ export function CampaignPage() {
       }
       const progress = recordCampaignQuizKpi(ageMode, chapterId, Boolean(event.payload.correct));
       setKpiProgress(progress);
+    }
+
+    if (event.type === 'skill_changed') {
+      const skill = String(event.payload.skill ?? '');
+      const increment = Number(event.payload.level ?? 0);
+      if (skill && increment > 0) {
+        incrementPlayerSkill(skill, increment);
+      }
+      return;
     }
 
     if (event.type === 'scene_completed') {
@@ -254,7 +282,7 @@ export function CampaignPage() {
         <h3>Рекомендации</h3>
         <ol>
           {recommendations.map((tag, index) => (
-            <li key={`${tag}-${index}`}>Повторить практику по теме: {tag}</li>
+            <li key={`${tag}-${index}`}>Повторить практику по теме: {toReadableTagLabel(tag)}</li>
           ))}
         </ol>
 

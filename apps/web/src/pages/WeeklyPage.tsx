@@ -5,6 +5,19 @@ import { completeWeeklyMission, readPlayerProgress } from '../playerProgress';
 import { processAchievementEvent, type GameEvent } from '../achievements';
 import { useAgeMode } from '../ageMode';
 
+const readableSkillLabels: Record<string, string> = {
+  urgency: 'Давление и срочность',
+  privacy: 'Личные данные',
+  account: 'Защита аккаунта',
+  antifake: 'Проверка информации',
+  communication: 'Безопасное общение',
+  antibullying: 'Реакция на травлю'
+};
+
+function toReadableSkillLabel(skill: string): string {
+  return readableSkillLabels[skill] ?? skill;
+}
+
 function isBetweenInclusive(today: string, start: string, end: string) {
   return today >= start && today <= end;
 }
@@ -92,7 +105,7 @@ export function WeeklyPage() {
               <p>
                 Награда: бейдж <strong>{activeWeekly.rewards.badge}</strong>, навыки{' '}
                 {Object.entries(activeWeekly.rewards.skills)
-                  .map(([key, value]) => `${key} +${value}`)
+                  .map(([key, value]) => `${toReadableSkillLabel(key)} +${value}`)
                   .join(', ')}
               </p>
             )}

@@ -1,6 +1,7 @@
-import { type CSSProperties, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getClueDescription, readCluesCollection } from '../cluesCollection';
+import { getClueDescription, readCluesCollection, subscribeCluesUpdates } from '../cluesCollection';
+import { readCampaignProgress, readPlayerProgress, subscribeProgressUpdates } from '../playerProgress';
 import { isDemoModeEnabled } from '../demoMode';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 
@@ -85,16 +86,43 @@ export function CluesPage() {
   const navigate = useNavigate();
   const [demoRouteStep, setDemoRouteStep] = useState(() => readDemoRouteState().step);
   const demoRouteActive = readDemoRouteState().active && isDemoModeEnabled();
-  const clues = useMemo(() => readCluesCollection(), []);
+  const [clues, setClues] = useState(() => readCluesCollection());
+  const [playerProgress, setPlayerProgress] = useState(() => readPlayerProgress());
+  const [campaignProgress, setCampaignProgress] = useState(() => readCampaignProgress());
+
+  useEffect(() => {
+    return subscribeCluesUpdates(() => {
+      setClues(readCluesCollection());
+    });
+  }, []);
+
+  useEffect(() => {
+    return subscribeProgressUpdates(() => {
+      setPlayerProgress(readPlayerProgress());
+      setCampaignProgress(readCampaignProgress());
+    });
+  }, []);
+
   const items = useMemo(
     () => Object.entries(clues).sort((a, b) => b[1].count - a[1].count),
     [clues]
   );
 
   const knownTypes = Object.keys(clueMetaMap).length;
-  const discoveredTypes = items.length;
+  const discoveredTypes = Math.min(items.length, knownTypes);
+  const totalCluesEncountered = items.reduce((total, [, entry]) => total + entry.count, 0);
   const allDiscovered = discoveredTypes >= knownTypes && knownTypes > 0;
-  const clueLiteracyPercent = knownTypes === 0 ? 0 : Math.min(100, Math.round((discoveredTypes / knownTypes) * 100));
+  const coveragePercent = knownTypes === 0 ? 0 : Math.round((discoveredTypes / knownTypes) * 100);
+
+  const scenesCompleted = Object.values(campaignProgress).reduce(
+    (total, mode) => total + Object.keys(mode.completedScenes ?? {}).length,
+    0
+  );
+  const finalsCompleted = Object.values(campaignProgress).reduce(
+    (total, mode) => total + Object.values(mode.completedFinals ?? {}).filter(Boolean).length,
+    0
+  );
+  const learningUnitsCompleted = scenesCompleted + finalsCompleted + playerProgress.completedWeeklyIds.length;
 
   return (
     <section className="clues-page">
@@ -126,15 +154,24 @@ export function CluesPage() {
 
       <section className="clues-summary" aria-label="Прогресс по уликам">
         <article className="summary-metric">
-          <p className="summary-label">Типов уже найдено</p>
+          <p className="summary-label">Типов улик найдено</p>
           <p className="summary-value">{discoveredTypes} из {knownTypes}</p>
         </article>
         <article className="summary-metric">
-          <p className="summary-label">Прогресс к полной грамотности</p>
-          <p className="summary-value">{clueLiteracyPercent}%</p>
-          <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={clueLiteracyPercent}>
-            <div className="progress-bar" style={{ width: `${clueLiteracyPercent}%` }} />
+          <p className="summary-label">Всего улик встречено в сценах</p>
+          <p className="summary-value">{totalCluesEncountered}</p>
+        </article>
+        <article className="summary-metric">
+          <p className="summary-label">Покрытие типов риска</p>
+          <p className="summary-value">{coveragePercent}%</p>
+          <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={coveragePercent}>
+            <div className="progress-bar" style={{ width: `${coveragePercent}%` }} />
           </div>
+        </article>
+        <article className="summary-metric">
+          <p className="summary-label">Общий учебный прогресс</p>
+          <p className="summary-value">{learningUnitsCompleted} завершённых шагов</p>
+          <p className="section-meta">Сцены: {scenesCompleted}, финалы: {finalsCompleted}, недельные миссии: {playerProgress.completedWeeklyIds.length}</p>
         </article>
       </section>
 
@@ -148,8 +185,8 @@ export function CluesPage() {
 
       {allDiscovered && (
         <section className="completion-state">
-          <h3>Коллекция полностью собрана</h3>
-          <p>Вы открыли все типы улик. Это показатель зрелой цифровой грамотности.</p>
+          <h3>Все типы сигналов риска уже открыты</h3>
+          <p>Отличный результат. Закрепляйте навык на новых сценах и недельных заданиях.</p>
         </section>
       )}
 

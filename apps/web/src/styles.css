@@ -544,6 +544,10 @@ button[disabled] {
   gap: var(--space-2);
 }
 
+.quiz-option-feedback {
+  margin: var(--space-1) 0 0.1rem;
+}
+
 .parents-grid,
 .kits-grid,
 .campaign-map,
@@ -699,8 +703,11 @@ button[disabled] {
 }
 
 .chat-row-system,
-.chat-row-other,
 .typing-row {
+  justify-content: center;
+}
+
+.chat-row-other {
   justify-content: flex-start;
 }
 
@@ -728,6 +735,51 @@ button[disabled] {
   letter-spacing: 0.01em;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+
+.chat-content {
+  display: grid;
+  gap: var(--space-2);
+  max-width: min(92%, 36rem);
+}
+
+.chat-content-player {
+  justify-items: end;
+}
+
+.chat-content-system {
+  justify-items: center;
+}
+
+.chat-content-other {
+  justify-items: start;
+}
+
+.attachment-card-player {
+  border-color: #4c77c8;
+  background: linear-gradient(180deg, #183565 0%, #122b52 100%);
+}
+
+.attachment-card-system,
+.attachment-card-other {
+  border-color: #3b557f;
+  background: linear-gradient(180deg, #14233e 0%, #0f1b30 100%);
+}
+
+.task-option-correct {
+  background: linear-gradient(180deg, #105845 0%, #0b4b3f 100%);
+  border-color: #2d9f7e;
+}
+
+.task-option-incorrect {
+  background: linear-gradient(180deg, #6d1838 0%, #57122e 100%);
+  border-color: #cd4972;
+}
+
+.task-option-disabled {
+  opacity: 0.72;
+  border-color: #4f6692;
 }
 
 .attachment-card {
