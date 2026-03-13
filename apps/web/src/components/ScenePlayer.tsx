@@ -578,11 +578,33 @@ export function ScenePlayer({
     }
   };
 
-  const isMiniTaskRequired = Boolean(scene.miniTask);
-  const isNextSceneUnlocked = selectedQuizOption !== null && (!isMiniTaskRequired || miniTaskPassed);
+  const completionState = useMemo(() => {
+    const miniTaskRequired = Boolean(scene.miniTask);
+    const miniTaskCompleted = !miniTaskRequired || miniTaskPassed;
+    const quizCompleted = selectedQuizOption !== null;
+    const readyForSceneCompletion = miniTaskCompleted && quizCompleted;
+
+    return {
+      miniTaskRequired,
+      miniTaskCompleted,
+      quizCompleted,
+      readyForSceneCompletion
+    };
+  }, [scene.miniTask, miniTaskPassed, selectedQuizOption]);
+
+  const isNextSceneUnlocked = completionState.readyForSceneCompletion;
   const miniTaskTone = miniTaskPassed ? 'task-success' : miniTaskFeedback ? 'task-warning' : 'task-neutral';
   const findClueTask = scene.miniTask?.type === 'find_clue' ? scene.miniTask : null;
   const buildTaskFragments = scene.miniTask?.type === 'build_safe_response' ? scene.miniTask.fragments : [];
+
+  let gateStatusText: string | null = null;
+  if (completionState.readyForSceneCompletion) {
+    gateStatusText = 'Все задания выполнены. Можно завершить миссию.';
+  } else if (!completionState.miniTaskCompleted) {
+    gateStatusText = 'Сначала заверши мини-задание этой сцены.';
+  } else if (!completionState.quizCompleted) {
+    gateStatusText = 'Ответь на вопрос проверки понимания, чтобы продолжить.';
+  }
 
   return (
     <article className="scene-card">
@@ -876,7 +898,7 @@ export function ScenePlayer({
             <button className="choice-button" type="button" onClick={nextScene} disabled={!isNextSceneUnlocked}>
               {sceneIndex < scenes.length - 1 ? 'Следующая сцена' : isCompleted ? 'Миссия завершена' : 'Завершить миссию'}
             </button>
-            {isMiniTaskRequired && !isNextSceneUnlocked && !miniTaskPassed && <p className="section-meta">Сначала заверши мини-задание этой сцены.</p>}
+            {gateStatusText && <p className="section-meta">{gateStatusText}</p>}
           </section>
         </div>
       )}

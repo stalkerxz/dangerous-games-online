@@ -1,6 +1,7 @@
 import { type CSSProperties, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../contentContext';
+import type { CampaignChapter, StoryScene } from '../contentEngine';
 import { ScenePlayer } from '../components/ScenePlayer';
 import { processAchievementEvent, type GameEvent } from '../achievements';
 import { useAgeMode } from '../ageMode';
