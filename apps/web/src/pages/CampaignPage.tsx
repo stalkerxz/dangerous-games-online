@@ -14,24 +14,14 @@ import {
   readCampaignProgress,
   recordCampaignQuizKpi,
   recordCampaignSceneKpi,
-  type CampaignKpiProgress,
-  type CampaignProgress,
-  type ChapterKpiMetrics,
-  type RiskLevel,
 } from '../playerProgress';
-  markCampaignSceneCompleted,
-  markChapterFinalCompleted,
-  markChapterFinalKpiCompleted,
-  readCampaignKpiProgress,
-  readCampaignProgress,
-  recordCampaignQuizKpi,
-  recordCampaignSceneKpi,
-  type CampaignKpiProgress,
-  type CampaignProgress,
-  type ChapterKpiMetrics,
-  type RiskLevel
+
+import type {
+  CampaignKpiProgress,
+  CampaignProgress,
+  ChapterKpiMetrics,
+  RiskLevel,
 } from '../playerProgress';
-import type { CampaignChapter, StoryScene } from '../contentEngine';
 import { readDemoRouteState, updateDemoRouteStep } from '../demoRoute';
 import { isDemoModeEnabled } from '../demoMode';
 import { readCluesCollection } from '../cluesCollection';
