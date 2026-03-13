@@ -12,6 +12,7 @@ type ScenePlayerProps = {
   showSceneProgress?: boolean;
   onComplete?: () => void;
   onEvent?: (event: GameEvent) => void;
+  onMicroReward?: (message: string) => void;
   eventContext?: {
     chapterId?: string;
     weeklyId?: string;
@@ -189,6 +190,22 @@ function getAlgorithmFromTags(tags: string[] | undefined): string {
   return 'Пауза → Проверка → Безопасный выбор';
 }
 
+
+function getMicroRewardText(tag: string | undefined): string {
+  if (tag === 'urgency') {
+    return 'Ты заметил давление';
+  }
+  if (tag === 'account') {
+    return 'Ты защитил аккаунт';
+  }
+  if (tag === 'antifake') {
+    return 'Ты проверил источник';
+  }
+  if (tag === 'antibullying' || tag === 'bullying_witness' || tag === 'communication') {
+    return 'Ты поддержал безопасно';
+  }
+  return 'Ты сделал безопасный шаг';
+}
 function getRiskAvoidedText(miniTask: SceneMiniTask): string {
   if (miniTask.type === 'find_clue') {
     return `Удалось заметить сигнал риска: ${miniTask.targetClue}.`;
@@ -208,6 +225,7 @@ export function ScenePlayer({
   showSceneProgress = false,
   onComplete,
   onEvent,
+  onMicroReward,
   eventContext
 }: ScenePlayerProps) {
   const initialIndex = useMemo(() => {
@@ -417,6 +435,8 @@ export function ScenePlayer({
       setMiniTaskFeedback(`${scene.miniTask.successText} Отлично: ты точно выделил(а) фразу, которая несёт риск.`);
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.miniTask.targetClue, option.text);
+      onEvent?.({ type: 'scene_completed', payload: { sceneId: scene.id, chapterId: eventContext?.chapterId ?? '', mini_task_completed: true } });
+      onMicroReward?.(getMicroRewardText(scene.miniTask.targetClue));
     } else {
       setMiniTaskPassed(false);
       setMiniTaskFeedback('Это не главный сигнал риска. Обрати внимание на фразу, где давят, просят секретные данные или подталкивают к спешке.');
@@ -451,6 +471,8 @@ export function ScenePlayer({
       setMiniTaskFeedback('Отлично! Ты верно отделил(а) безопасные действия от рискованных.');
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.tags?.[0] ?? 'antifake', scene.miniTask.prompt);
+      onEvent?.({ type: 'scene_completed', payload: { sceneId: scene.id, chapterId: eventContext?.chapterId ?? '', mini_task_completed: true } });
+      onMicroReward?.(getMicroRewardText(scene.tags?.[0]));
       return;
     }
 
@@ -500,6 +522,8 @@ export function ScenePlayer({
       setMiniTaskFeedback(scene.miniTask.successText);
       setMiniTaskRiskFeedback(getRiskAvoidedText(scene.miniTask));
       recordDirectClue(scene.tags?.[0] ?? 'communication', scene.miniTask.prompt);
+      onEvent?.({ type: 'scene_completed', payload: { sceneId: scene.id, chapterId: eventContext?.chapterId ?? '', mini_task_completed: true } });
+      onMicroReward?.(getMicroRewardText(scene.tags?.[0]));
       return;
     }
 
@@ -525,6 +549,10 @@ export function ScenePlayer({
           action: selectedChoice.effects?.actions?.[0] ?? selectedChoice.actions?.[0] ?? ''
         }
       });
+
+      if (riskLevel === 'safe') {
+        onMicroReward?.(getMicroRewardText(primaryTag));
+      }
 
       if (selectedChoice.effects?.skills) {
         for (const [skill, level] of Object.entries(selectedChoice.effects.skills)) {
